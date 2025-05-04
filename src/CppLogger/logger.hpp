@@ -62,7 +62,8 @@ struct LogFormatString
   template <typename T>
   consteval LogFormatString(
       T &&fmt, std::source_location location = std::source_location::current())
-      : std::format_string<>(std::forward<T>(fmt)), m_location(location) {}
+      : std::format_string<std::type_identity_t<Args>...>(std::forward<T>(fmt)),
+        m_location(location) {}
 
   /**
    * Source location information associated with the format string.
@@ -92,9 +93,7 @@ template <typename T> struct LogTargets {
    */
   template <MessageType M>
   auto logproviders() const noexcept -> decltype(auto) {
-    return std::ranges::empty_view<decltype([]() -> std::ostream & {
-      return std::declval<std::ostream &>();
-    })>{};
+    return std::ranges::empty_view<std::ostream &(*)()>{};
   }
 };
 
