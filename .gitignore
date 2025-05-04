@@ -1,5 +1,10 @@
-build/
-.cache/
+# CMake
+/build/
+CMakeFiles/
+CMakeUserPresets.json
+
+# LSP
+/.clangd
+/.cache/
 compile_commands.json
 
-CMakeUserPresets.json
