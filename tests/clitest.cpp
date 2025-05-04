@@ -1,18 +1,26 @@
 #include "CppLogger/logger.hpp"
 
+#include <fstream>
 #include <iostream>
 #include <print>
 #include <source_location>
+#include <tuple>
 
 std::ostream &provideClog() { return std::clog; }
 
-template <>
-template <logger::MessageType M>
-auto logger::LogTargets<logger::DefaultProviderTag>::logproviders()
-    const noexcept -> decltype(auto) {
-  static constexpr std::ranges::single_view view{&provideClog};
-  return view;
-}
+template <> struct logger::LogTargets<logger::DefaultProviderTag> {
+  mutable std::ofstream m_file{"log.txt", std::ios::app};
+
+  template <logger::MessageType M>
+  auto logproviders() const noexcept -> decltype(auto) {
+    return std::tuple(&provideClog,
+                      [this]() -> std::ostream & { return m_file; });
+  }
+};
+
+static_assert(logger::concepts::IndirectlyProvidesLogTargets<
+              logger::LogTargets<logger::DefaultProviderTag>,
+              logger::MessageType::Warning>);
 
 template <>
 template <logger::MessageType M, std::output_iterator<char> OutputIt>
@@ -35,6 +43,11 @@ int main() {
   std::println("Start main()\n");
   {
     logger::logwarn("str fmt [{}]", 10);
+  }
+  {
+    auto tup = std::make_tuple(1, 2, 4, 5);
+    std::apply([](const auto &...vs) { (std::println("n: {}", vs), ...); },
+               tup);
   }
   std::println("\nend main()\n");
   return 0;

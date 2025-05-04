@@ -195,8 +195,18 @@ void log(LogFormatString<std::type_identity_t<Args>...> fmt,
   Formatter{}.template format<type>(
       fmt.location(), std::ostream_iterator<char>(strStream),
       std::format(std::move(fmt), std::forward<Args>(args)...));
-  for (const auto &p : Provider{}.template logproviders<type>()) {
-    std::osyncstream{p()} << strStream.str() << '\n';
+  if constexpr (logger::concepts::IndirectlyProvidesLogTargetsRange<Provider,
+                                                                    type>) {
+    for (const auto &p : Provider{}.template logproviders<type>()) {
+      std::osyncstream{p()} << strStream.str() << '\n';
+    }
+  } else if constexpr (logger::concepts::IndirectlyProvidesLogTargetsTupleLike<
+                           Provider, type>) {
+    std::apply(
+        [&strStream](auto &&...p) {
+          ((std::osyncstream{p()} << strStream.str() << '\n'), ...);
+        },
+        Provider{}.template logproviders<type>());
   }
 }
 
