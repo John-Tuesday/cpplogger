@@ -8,20 +8,19 @@
 #include <source_location>
 #include <tuple>
 
-template <> struct logger::LogTargets<logger::DefaultProviderTag> {
+template <> struct logger::LogTargets<logger::DefaultImplTag> {
   template <logger::MessageType M>
-  auto logproviders() const noexcept -> decltype(auto) {
+  auto providers() const noexcept -> decltype(auto) {
     return std::tuple([]() -> std::ostream & { return std::clog; });
   }
 };
 
 static_assert(logger::concepts::IndirectlyProvidesLogTargets<
-              logger::LogTargets<logger::DefaultProviderTag>,
-              logger::MessageType::Warning>);
+              logger::DefaultLogTargets, logger::MessageType::Warning>);
 
 template <>
 template <logger::MessageType M, std::output_iterator<char> OutputIt>
-OutputIt logger::LogFormatter<logger::DefaultFormatterTag>::format(
+OutputIt logger::LogFormatter<logger::DefaultImplTag>::format(
     const std::source_location &location, OutputIt out,
     std::string_view msg) const noexcept {
   return std::format_to(std::move(out), "[{}] {} `{}` {}:{} {}", "VOID",
@@ -46,7 +45,7 @@ std::filesystem::path tempDir() {
 
 struct LogTargetsBasicFileLog {
   template <logger::MessageType MType>
-  auto logproviders() const noexcept -> decltype(auto) {
+  auto providers() const noexcept -> decltype(auto) {
     return std::tuple([]() -> std::ostream & { return std::clog; },
                       [this]() { return std::ref(this->m_logfile); });
   }
@@ -81,13 +80,13 @@ int main() {
 
 void test::testBasic() {
   constexpr std::string_view expect = "str fmt[10]";
-  logger::logwarn("str fmt [{}]", 10);
+  logger::logWarn("str fmt [{}]", 10);
 }
 
 void test::testFileLog() {
   constexpr auto mtype = logger::MessageType::Info;
   constexpr std::string_view expect = "info: 5 == 5";
-  logger::logPrint<mtype, test::LogTargetsBasicFileLog>("info: 5 == {}", 5);
+  logger::log<mtype, test::LogTargetsBasicFileLog>("info: 5 == {}", 5);
   std::ifstream logIn{test::LogTargetsBasicFileLog::logPath()};
   bool noLineRead{true};
   for (std::string line; std::getline(logIn, line, '\n');) {

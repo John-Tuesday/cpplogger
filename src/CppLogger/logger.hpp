@@ -32,15 +32,19 @@ enum class MessageType {
 
 template <typename... Args> struct LogFormatString;
 
+struct DefaultImplTag {};
+
 template <typename> struct LogTargets;
-/** Used as the template argument for the default `LogTargets`. */
-struct DefaultProviderTag {};
+using DefaultLogTargets = LogTargets<logger::DefaultImplTag>;
+
 template <typename> struct LogFormatter;
-/** Used as the template argument for the default `LogFormatter`. */
-struct DefaultFormatterTag {};
+using DefaultLogFormatter = LogFormatter<DefaultImplTag>;
+
+template <typename> struct LogPrinter;
+using DefaultLogPrinter = LogPrinter<DefaultImplTag>;
+
 template <typename> struct LogFilter;
-/** Used as the template argument for the default `LogFilter`. */
-struct DefaultLogFilterTag {};
+using DefaultLogFilter = LogFilter<DefaultImplTag>;
 
 template <MessageType> struct MessageTypeTraits;
 
@@ -92,8 +96,7 @@ template <typename T> struct LogTargets {
    *
    * Default implementation returns an empty view.
    */
-  template <MessageType M>
-  auto logproviders() const noexcept -> decltype(auto) {
+  template <MessageType M> auto providers() const noexcept -> decltype(auto) {
     return std::ranges::empty_view<std::ostream &(*)()>{};
   }
 };
@@ -134,9 +137,6 @@ template <typename T> struct LogPrinter {
   }
 }; // namespace logger
 
-struct DefaultLogPrinterTag;
-using DefaultLogPrinter = LogPrinter<DefaultLogPrinterTag>;
-
 /**
  * Base implementation of a log filter that satisfies
  * `logger::concepts::IsLogFilter`.
@@ -170,15 +170,15 @@ template <MessageType M> struct MessageTypeTraits {
   static constexpr MessageType type = M;
 
   /** Provider of log targets */
-  using TargetProvider = LogTargets<DefaultProviderTag>;
+  using TargetProvider = DefaultLogTargets;
 
   /** Formatter of log messages */
-  using Formatter = LogFormatter<DefaultFormatterTag>;
+  using Formatter = DefaultLogFormatter;
 
   using Printer = DefaultLogPrinter;
 
   /** Filter of log messages */
-  using Filter = LogFilter<DefaultLogFilterTag>;
+  using Filter = DefaultLogFilter;
 
   static_assert(concepts::IndirectlyProvidesLogTargets<TargetProvider, M>);
   static_assert(concepts::IsLogFormatter<Formatter, M>);
@@ -187,44 +187,7 @@ template <MessageType M> struct MessageTypeTraits {
 
 /**
  * Base logging implementation.
- *
- * @tparam type describes the type of log message
- * @tparam Provider provides a range of log target providers
- * @tparam Formatter called to format the log output
- * @tparam Filter called to determine if this call to log should be skipped
- * @param fmt log message format string
- * @param args arguments to be formatted
  */
-template <MessageType type,
-          concepts::IndirectlyProvidesLogTargets<type> Provider =
-              MessageTypeTraits<type>::TargetProvider,
-          concepts::IsLogFormatter<type> Formatter =
-              MessageTypeTraits<type>::Formatter,
-          concepts::IsLogFilter<type> Filter = MessageTypeTraits<type>::Filter,
-          typename... Args>
-void log(LogFormatString<std::type_identity_t<Args>...> fmt,
-         Args &&...args) noexcept {
-  if (!Filter{}.template filter<type>(fmt.location()))
-    return;
-  std::ostringstream strStream{};
-  Formatter{}.template format<type>(
-      fmt.location(), std::ostream_iterator<char>(strStream),
-      std::format(std::move(fmt), std::forward<Args>(args)...));
-  if constexpr (logger::concepts::IndirectlyProvidesLogTargetsRange<Provider,
-                                                                    type>) {
-    for (const auto &p : Provider{}.template logproviders<type>()) {
-      std::osyncstream{p()} << strStream.str() << '\n';
-    }
-  } else if constexpr (logger::concepts::IndirectlyProvidesLogTargetsTupleLike<
-                           Provider, type>) {
-    std::apply(
-        [&strStream](auto &&...p) {
-          ((std::osyncstream{p()} << strStream.str() << '\n'), ...);
-        },
-        Provider{}.template logproviders<type>());
-  }
-}
-
 template <
     MessageType MType,
     concepts::IndirectlyProvidesLogTargets<MType> Providers =
@@ -232,8 +195,8 @@ template <
     concepts::PrintsToLog<MType> Printer = MessageTypeTraits<MType>::Printer,
     concepts::IsLogFilter<MType> Filter = MessageTypeTraits<MType>::Filter,
     typename... Args>
-void logPrint(LogFormatString<std::type_identity_t<Args>...> fmt,
-              Args &&...args) noexcept {
+void log(LogFormatString<std::type_identity_t<Args>...> fmt,
+         Args &&...args) noexcept {
   if (!Filter{}.template filter<MType>(fmt.location()))
     return;
   std::string message =
@@ -248,7 +211,15 @@ void logPrint(LogFormatString<std::type_identity_t<Args>...> fmt,
         }(ps()),
         ...);
   };
-  std::apply(fns, Providers{}.template logproviders<MType>());
+  using ProvidersType =
+      decltype(std::declval<Providers>().template providers<MType>());
+  if constexpr (concepts::TupleLikeLogTargetProviders<ProvidersType>) {
+    std::apply(fns, Providers{}.template providers<MType>());
+  } else if constexpr (concepts::LogTargetProviderRange<ProvidersType>) {
+    for (auto p : Providers{}.template providers<MType>()) {
+      fns(p());
+    }
+  }
 }
 
 /**
@@ -258,7 +229,7 @@ void logPrint(LogFormatString<std::type_identity_t<Args>...> fmt,
  * @param[in] args variables to formated
  */
 template <typename... Args>
-void logfatal(LogFormatString<std::type_identity_t<Args>...> fmt,
+void logFatal(LogFormatString<std::type_identity_t<Args>...> fmt,
               Args &&...args) noexcept {
   log<MessageType::Fatal>(std::move(fmt), std::forward<Args>(args)...);
 }
@@ -266,10 +237,10 @@ void logfatal(LogFormatString<std::type_identity_t<Args>...> fmt,
 /**
  * Log using defaults for `MessageType::Error`.
  *
- * @copydetails logfatal()
+ * @copydetails logFatal()
  */
 template <typename... Args>
-void logerror(LogFormatString<std::type_identity_t<Args>...> fmt,
+void logError(LogFormatString<std::type_identity_t<Args>...> fmt,
               Args &&...args) noexcept {
   log<MessageType::Error>(std::move(fmt), std::forward<Args>(args)...);
 }
@@ -277,10 +248,10 @@ void logerror(LogFormatString<std::type_identity_t<Args>...> fmt,
 /**
  * Log using defaults for `MessageType::Warning`.
  *
- * @copydetails logfatal()
+ * @copydetails logFatal()
  */
 template <typename... Args>
-void logwarn(LogFormatString<std::type_identity_t<Args>...> fmt,
+void logWarn(LogFormatString<std::type_identity_t<Args>...> fmt,
              Args &&...args) noexcept {
   log<MessageType::Warning>(std::move(fmt), std::forward<Args>(args)...);
 }
@@ -288,10 +259,10 @@ void logwarn(LogFormatString<std::type_identity_t<Args>...> fmt,
 /**
  * Log using defaults for `MessageType::Info`.
  *
- * @copydetails logfatal()
+ * @copydetails logFatal()
  */
 template <typename... Args>
-void loginfo(LogFormatString<std::type_identity_t<Args>...> fmt,
+void logInfo(LogFormatString<std::type_identity_t<Args>...> fmt,
              Args &&...args) noexcept {
   log<MessageType::Info>(std::move(fmt), std::forward<Args>(args)...);
 }
@@ -299,10 +270,10 @@ void loginfo(LogFormatString<std::type_identity_t<Args>...> fmt,
 /**
  * Log using defaults for `MessageType::Debug`.
  *
- * @copydetails logfatal()
+ * @copydetails logFatal()
  */
 template <typename... Args>
-void logdebug(LogFormatString<std::type_identity_t<Args>...> fmt,
+void logDebug(LogFormatString<std::type_identity_t<Args>...> fmt,
               Args &&...args) noexcept {
   log<MessageType::Debug>(std::move(fmt), std::forward<Args>(args)...);
 }
@@ -310,10 +281,10 @@ void logdebug(LogFormatString<std::type_identity_t<Args>...> fmt,
 /**
  * Log using defaults for `MessageType::Verbose`.
  *
- * @copydetails logfatal()
+ * @copydetails logFatal()
  */
 template <typename... Args>
-void logverbose(LogFormatString<std::type_identity_t<Args>...> fmt,
+void logVerbose(LogFormatString<std::type_identity_t<Args>...> fmt,
                 Args &&...args) noexcept {
   log<MessageType::Verbose>(std::move(fmt), std::forward<Args>(args)...);
 }
