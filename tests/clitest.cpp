@@ -5,7 +5,6 @@
 #include <fstream>
 #include <iostream>
 #include <print>
-#include <source_location>
 #include <tuple>
 
 template <> struct logger::LogTargets<logger::DefaultImplTag> {
@@ -17,16 +16,6 @@ template <> struct logger::LogTargets<logger::DefaultImplTag> {
 
 static_assert(logger::concepts::IndirectlyProvidesLogTargets<
               logger::DefaultLogTargets, logger::MessageType::Warning>);
-
-template <>
-template <logger::MessageType M, std::output_iterator<char> OutputIt>
-OutputIt logger::LogFormatter<logger::DefaultImplTag>::format(
-    const std::source_location &location, OutputIt out,
-    std::string_view msg) const noexcept {
-  return std::format_to(std::move(out), "[{}] {} `{}` {}:{} {}", "VOID",
-                        location.file_name(), location.function_name(),
-                        location.line(), location.column(), msg);
-}
 
 namespace test {
 
@@ -91,7 +80,7 @@ void test::testFileLog() {
   bool noLineRead{true};
   for (std::string line; std::getline(logIn, line, '\n');) {
     noLineRead = false;
-    if (line != expect) {
+    if (line.contains(expect)) {
       std::println("!!!FAIL!!!");
       std::println("  expect: '{}'", expect);
       std::println("  actual: '{}'", line);

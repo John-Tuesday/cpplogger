@@ -50,21 +50,6 @@ concept IndirectlyProvidesLogTargets = requires(T t) {
 };
 
 /**
- * Meets the requirements of a log formatter.
- *
- * Should return iterator past the end of the output range.
- * Should essentially mirror the behavior of `std::format_to`.
- */
-template <typename T, MessageType M>
-concept IsLogFormatter = requires(T t) {
-  {
-    t.template format<M>(std::declval<std::source_location>(),
-                         std::ostream_iterator<char>(std::cout),
-                         std::declval<std::string_view>())
-  } -> std::same_as<decltype(std::ostream_iterator<char>(std::cout))>;
-};
-
-/**
  * Provides a function to print a log messages.
  */
 template <typename T, MessageType MType>
@@ -77,7 +62,7 @@ concept PrintsToLog = requires(T t) {
 
 /** Meets the requirements of a log filter. */
 template <typename T, MessageType M>
-concept IsLogFilter = requires(T t) {
+concept FiltersLog = requires(T t) {
   {
     t.template filter<M>(std::declval<std::source_location>())
   } noexcept -> std::same_as<bool>;

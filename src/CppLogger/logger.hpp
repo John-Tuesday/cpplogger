@@ -4,7 +4,6 @@
 
 #include <format>
 #include <iostream>
-#include <iterator>
 #include <print>
 #include <ranges>
 #include <source_location>
@@ -32,13 +31,13 @@ enum class MessageType {
 
 template <typename... Args> struct LogFormatString;
 
+/**
+ * Tag used to enable custom specialization of default types
+ */
 struct DefaultImplTag {};
 
 template <typename> struct LogTargets;
 using DefaultLogTargets = LogTargets<logger::DefaultImplTag>;
-
-template <typename> struct LogFormatter;
-using DefaultLogFormatter = LogFormatter<DefaultImplTag>;
 
 template <typename> struct LogPrinter;
 using DefaultLogPrinter = LogPrinter<DefaultImplTag>;
@@ -87,7 +86,7 @@ private:
  * Injectable type which should satisfy
  * `logger::concepts::IndirectlyProvidesLogTargets`.
  *
- * Specialize for `DefaultProviderTag` to define custom behavior.
+ * Specialize for `DefaultImplTag` to define custom behavior.
  */
 template <typename T> struct LogTargets {
 
@@ -102,46 +101,39 @@ template <typename T> struct LogTargets {
 };
 
 /**
- * Base implementation of a log formatter that satisfies
- * `logger::concepts::IsLogFormatter`.
- *
- * By default, an object of this type with template argument
- * `DefaultFormatterTag` is used as the formatter type for logging. Custom
- * behavior can be provided by specializing that type.
+ * Base implementation of a log printer.
  */
-template <typename T> struct LogFormatter {
-
-  /**
-   * Formats a log message to an output iterator.
-   *
-   * By default, wraps `std::format_to`.
-   *
-   * @param[in] out iterator to the output buffer
-   * @param[in] msg formatted log input message
-   * @return iterator past the end of the output range
-   */
-  template <MessageType M, std::output_iterator<char> OutputIt>
-  OutputIt
-  format(const std::source_location & /**< [in] log message position */,
-         OutputIt out, std::string_view msg) const noexcept {
-    return std::format_to(std::move(out), "{}", msg);
-  }
-};
-
 template <typename T> struct LogPrinter {
+  /**
+   * Print log message to a given log target.
+   *
+   * This function is responsible for formatting the log message, including
+   * appending a newline.
+   *
+   * Specialize different `Stream` to provide different behavior for different
+   * stream types. For example, different behavior for `std::ofstream` than
+   * `std::ostream`.
+   *
+   * @tparam MType log message type
+   * @tparam Stream log target stream
+   * @param stream log output stream which will be written to
+   * @param location information describing the original callsite
+   * @param msg message specified by the original callsite
+   */
   template <MessageType MType, typename Stream>
     requires std::derived_from<Stream, std::remove_cvref_t<Stream>>
-  void print(Stream &stream, const std::source_location &,
+  void print(Stream &stream, const std::source_location &location,
              std::string_view msg) const noexcept {
-    std::print(stream, "{}", msg);
+    std::println(stream, "{} {}:{}", location.file_name(), location.line(),
+                 location.column(), msg);
   }
-}; // namespace logger
+};
 
 /**
  * Base implementation of a log filter that satisfies
  * `logger::concepts::IsLogFilter`.
  *
- * Specialize this type for template argument `DefaultLogFilterTag` to define
+ * Specialize this type for template argument `DefaultImplTag` to define
  * custom default filtering.
  */
 template <typename T> struct LogFilter {
@@ -164,25 +156,18 @@ template <typename T> struct LogFilter {
 /**
  * Provides the default types used for logging a message of a given type.
  */
-template <MessageType M> struct MessageTypeTraits {
-
-  /** `MessageType` to which these traits belong */
-  static constexpr MessageType type = M;
-
+template <MessageType MType> struct MessageTypeTraits {
   /** Provider of log targets */
   using TargetProvider = DefaultLogTargets;
+  static_assert(concepts::IndirectlyProvidesLogTargets<TargetProvider, MType>);
 
-  /** Formatter of log messages */
-  using Formatter = DefaultLogFormatter;
-
+  /** Printer for log messages */
   using Printer = DefaultLogPrinter;
+  static_assert(concepts::PrintsToLog<Printer, MType>);
 
   /** Filter of log messages */
   using Filter = DefaultLogFilter;
-
-  static_assert(concepts::IndirectlyProvidesLogTargets<TargetProvider, M>);
-  static_assert(concepts::IsLogFormatter<Formatter, M>);
-  static_assert(concepts::IsLogFilter<Filter, M>);
+  static_assert(concepts::FiltersLog<Filter, MType>);
 };
 
 /**
@@ -193,7 +178,7 @@ template <
     concepts::IndirectlyProvidesLogTargets<MType> Providers =
         MessageTypeTraits<MType>::TargetProvider,
     concepts::PrintsToLog<MType> Printer = MessageTypeTraits<MType>::Printer,
-    concepts::IsLogFilter<MType> Filter = MessageTypeTraits<MType>::Filter,
+    concepts::FiltersLog<MType> Filter = MessageTypeTraits<MType>::Filter,
     typename... Args>
 void log(LogFormatString<std::type_identity_t<Args>...> fmt,
          Args &&...args) noexcept {
