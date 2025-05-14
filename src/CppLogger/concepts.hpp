@@ -85,6 +85,14 @@ concept IsLogFormatter = requires(T t) {
   } -> std::same_as<decltype(std::ostream_iterator<char>(std::cout))>;
 };
 
+template <typename T, MessageType MType>
+concept PrintsToLog = requires(T t) {
+  {
+    t.template print<MType>(std::declval<std::ostream &>(),
+                            std::declval<std::source_location>(), "message")
+  };
+};
+
 /** Meets the requirements of a log filter. */
 template <typename T, MessageType M>
 concept IsLogFilter = requires(T t) {

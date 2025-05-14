@@ -1,20 +1,17 @@
-#include "CppLogger/logger.hpp"
+#include <CppLogger/logger.hpp>
 
+#include <cassert>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <print>
 #include <source_location>
 #include <tuple>
 
-std::ostream &provideClog() { return std::clog; }
-
 template <> struct logger::LogTargets<logger::DefaultProviderTag> {
-  mutable std::ofstream m_file{"log.txt", std::ios::app};
-
   template <logger::MessageType M>
   auto logproviders() const noexcept -> decltype(auto) {
-    return std::tuple(&provideClog,
-                      [this]() -> std::ostream & { return m_file; });
+    return std::tuple([]() -> std::ostream & { return std::clog; });
   }
 };
 
@@ -32,23 +29,76 @@ OutputIt logger::LogFormatter<logger::DefaultFormatterTag>::format(
                         location.line(), location.column(), msg);
 }
 
-template <>
-template <logger::MessageType M>
-bool logger::LogFilter<logger::DefaultLogFilterTag>::filter(
-    const std::source_location &) const noexcept {
-  return true;
+namespace test {
+
+std::filesystem::path tempDir() {
+  std::error_code ec{};
+  std::filesystem::path path =
+      std::filesystem::temp_directory_path(ec) / "CppLogger";
+  if (ec) {
+    std::println(std::clog, "Error creating temp dir: '{}'", ec.message());
+    assert(!ec);
+    return std::filesystem::path{};
+  }
+  assert(!ec);
+  return path;
 }
+
+struct LogTargetsBasicFileLog {
+  template <logger::MessageType MType>
+  auto logproviders() const noexcept -> decltype(auto) {
+    return std::tuple([]() -> std::ostream & { return std::clog; },
+                      [this]() { return std::ref(this->m_logfile); });
+  }
+
+  static std::filesystem::path logPath();
+
+private:
+  mutable std::ofstream m_logfile{logPath()};
+};
+
+std::filesystem::path LogTargetsBasicFileLog::logPath() {
+  std::filesystem::path path = test::tempDir();
+  std::error_code ec{};
+  std::filesystem::create_directory(path, ec);
+  assert(!ec);
+  return path / "test.log";
+}
+
+void testBasic();
+
+void testFileLog();
+
+} // namespace test
 
 int main() {
   std::println("Start main()\n");
-  {
-    logger::logwarn("str fmt [{}]", 10);
-  }
-  {
-    auto tup = std::make_tuple(1, 2, 4, 5);
-    std::apply([](const auto &...vs) { (std::println("n: {}", vs), ...); },
-               tup);
-  }
+  test::testBasic();
+  test::testFileLog();
   std::println("\nend main()\n");
   return 0;
+}
+
+void test::testBasic() {
+  constexpr std::string_view expect = "str fmt[10]";
+  logger::logwarn("str fmt [{}]", 10);
+}
+
+void test::testFileLog() {
+  constexpr auto mtype = logger::MessageType::Info;
+  constexpr std::string_view expect = "info: 5 == 5";
+  logger::logPrint<mtype, test::LogTargetsBasicFileLog>("info: 5 == {}", 5);
+  std::ifstream logIn{test::LogTargetsBasicFileLog::logPath()};
+  bool noLineRead{true};
+  for (std::string line; std::getline(logIn, line, '\n');) {
+    noLineRead = false;
+    if (line != expect) {
+      std::println("!!!FAIL!!!");
+      std::println("  expect: '{}'", expect);
+      std::println("  actual: '{}'", line);
+    } else {
+      std::println("PASS");
+    }
+  }
+  assert(!noLineRead);
 }

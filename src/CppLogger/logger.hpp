@@ -5,6 +5,7 @@
 #include <format>
 #include <iostream>
 #include <iterator>
+#include <print>
 #include <ranges>
 #include <source_location>
 #include <string_view>
@@ -124,6 +125,18 @@ template <typename T> struct LogFormatter {
   }
 };
 
+template <typename T> struct LogPrinter {
+  template <MessageType MType, typename Stream>
+    requires std::derived_from<Stream, std::remove_cvref_t<Stream>>
+  void print(Stream &stream, const std::source_location &,
+             std::string_view msg) const noexcept {
+    std::print(stream, "{}", msg);
+  }
+}; // namespace logger
+
+struct DefaultLogPrinterTag;
+using DefaultLogPrinter = LogPrinter<DefaultLogPrinterTag>;
+
 /**
  * Base implementation of a log filter that satisfies
  * `logger::concepts::IsLogFilter`.
@@ -161,6 +174,8 @@ template <MessageType M> struct MessageTypeTraits {
 
   /** Formatter of log messages */
   using Formatter = LogFormatter<DefaultFormatterTag>;
+
+  using Printer = DefaultLogPrinter;
 
   /** Filter of log messages */
   using Filter = LogFilter<DefaultLogFilterTag>;
@@ -208,6 +223,32 @@ void log(LogFormatString<std::type_identity_t<Args>...> fmt,
         },
         Provider{}.template logproviders<type>());
   }
+}
+
+template <
+    MessageType MType,
+    concepts::IndirectlyProvidesLogTargets<MType> Providers =
+        MessageTypeTraits<MType>::TargetProvider,
+    concepts::PrintsToLog<MType> Printer = MessageTypeTraits<MType>::Printer,
+    concepts::IsLogFilter<MType> Filter = MessageTypeTraits<MType>::Filter,
+    typename... Args>
+void logPrint(LogFormatString<std::type_identity_t<Args>...> fmt,
+              Args &&...args) noexcept {
+  if (!Filter{}.template filter<MType>(fmt.location()))
+    return;
+  std::string message =
+      std::format(std::move(fmt), std::forward<Args>(args)...);
+  Printer printer{};
+  auto fns = [&message, location = fmt.location(),
+              &printer]<concepts::ProvidesLogTarget... Ps>(Ps &&...ps) {
+    (
+        [&](auto &&s) {
+          std::osyncstream sync{s};
+          printer.template print<MType>(sync, location, message);
+        }(ps()),
+        ...);
+  };
+  std::apply(fns, Providers{}.template logproviders<MType>());
 }
 
 /**
