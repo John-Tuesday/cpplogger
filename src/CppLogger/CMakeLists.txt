@@ -11,6 +11,7 @@ target_sources(cpplogger_header_only
     FILES
         concepts.hpp
         logger.hpp
+        message.hpp
 )
 
 target_compile_features(cpplogger_header_only
