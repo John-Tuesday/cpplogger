@@ -16,8 +16,8 @@ namespace logger {
  */
 struct DefaultImplTag {};
 
-template <typename> struct LogTargets;
-using DefaultLogTargets = LogTargets<logger::DefaultImplTag>;
+template <typename> struct LogTargetProviders;
+using DefaultLogTargetProviders = LogTargetProviders<logger::DefaultImplTag>;
 
 template <typename> struct LogPrinter;
 using DefaultLogPrinter = LogPrinter<DefaultImplTag>;
@@ -33,7 +33,7 @@ template <MessageType> struct MessageTypeTraits;
  *
  * Specialize for `DefaultImplTag` to define custom behavior.
  */
-template <typename T> struct LogTargets {
+template <typename T> struct LogTargetProviders {
 
   /**
    * @return a range of target providers to be used for a given `MessageType`.
@@ -103,7 +103,7 @@ template <typename T> struct LogFilter {
  */
 template <MessageType MType> struct MessageTypeTraits {
   /** Provider of log targets */
-  using TargetProvider = DefaultLogTargets;
+  using TargetProvider = DefaultLogTargetProviders;
   static_assert(concepts::IndirectlyProvidesLogTargets<TargetProvider, MType>);
 
   /** Printer for log messages */

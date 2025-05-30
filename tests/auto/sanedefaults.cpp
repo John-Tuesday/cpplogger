@@ -8,8 +8,8 @@ template <logger::MessageType MType>
 concept VerifyDefaultsFor =
     logger::concepts::FiltersLog<logger::DefaultLogFilter, MType> &&
     logger::concepts::PrintsToLog<logger::DefaultLogPrinter, MType> &&
-    logger::concepts::IndirectlyProvidesLogTargets<logger::DefaultLogTargets,
-                                                   MType>;
+    logger::concepts::IndirectlyProvidesLogTargets<
+        logger::DefaultLogTargetProviders, MType>;
 
 template <logger::MessageType... MTypes> constexpr bool testTypes() noexcept {
   return (VerifyDefaultsFor<MTypes> && ...);

@@ -7,7 +7,7 @@
 #include <print>
 #include <tuple>
 
-template <> struct logger::LogTargets<logger::DefaultImplTag> {
+template <> struct logger::LogTargetProviders<logger::DefaultImplTag> {
   template <logger::MessageType M>
   auto providers() const noexcept -> decltype(auto) {
     return std::tuple([]() -> std::ostream & { return std::clog; });
@@ -15,7 +15,7 @@ template <> struct logger::LogTargets<logger::DefaultImplTag> {
 };
 
 static_assert(logger::concepts::IndirectlyProvidesLogTargets<
-              logger::DefaultLogTargets, logger::MessageType::Warning>);
+              logger::DefaultLogTargetProviders, logger::MessageType::Warning>);
 
 namespace test {
 
