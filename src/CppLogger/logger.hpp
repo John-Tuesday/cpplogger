@@ -31,8 +31,7 @@ void log(LogFormatString<std::type_identity_t<Args>...> fmt,
               &printer]<concepts::ProvidesLogTarget... Ps>(Ps &&...ps) {
     (
         [&](auto &&s) {
-          std::osyncstream sync{s};
-          printer.template print<MType>(sync, location, message);
+          printer.template print<MType>(std::osyncstream{s}, location, message);
         }(ps()),
         ...);
   };

@@ -16,6 +16,9 @@ namespace logger {
  */
 struct DefaultImplTag {};
 
+template <typename> struct LogTargets;
+using DefaultLogTargets = LogTargets<logger::DefaultImplTag>;
+
 template <typename> struct LogTargetProviders;
 using DefaultLogTargetProviders = LogTargetProviders<logger::DefaultImplTag>;
 
@@ -26,6 +29,14 @@ template <typename> struct LogFilter;
 using DefaultLogFilter = LogFilter<DefaultImplTag>;
 
 template <MessageType> struct MessageTypeTraits;
+
+template <typename> struct LogTargets {
+  template <MessageType>
+  auto targets(const std::source_location &) noexcept
+      -> logger::concepts::TupleLikeOfLogTargets decltype(auto) {
+    return std::tuple(std::ref(std::cerr));
+  }
+};
 
 /**
  * Injectable type which should satisfy
@@ -65,9 +76,8 @@ template <typename T> struct LogPrinter {
    * @param location information describing the original callsite
    * @param msg message specified by the original callsite
    */
-  template <MessageType MType, typename Stream>
-    requires std::derived_from<Stream, std::remove_cvref_t<Stream>>
-  void print(Stream &stream, const std::source_location &location,
+  template <MessageType MType, logger::concepts::LogTarget Stream>
+  void print(Stream &&stream, const std::source_location &location,
              std::string_view msg) const noexcept {
     std::println(stream, "{} {}:{}", location.file_name(), location.line(),
                  location.column(), msg);
@@ -102,6 +112,9 @@ template <typename T> struct LogFilter {
  * Provides the default types used for logging a message of a given type.
  */
 template <MessageType MType> struct MessageTypeTraits {
+  using Targets = DefaultLogTargets;
+  static_assert(concepts::ProvidesLogOutputTargets<Targets, MType>);
+
   /** Provider of log targets */
   using TargetProvider = DefaultLogTargetProviders;
   static_assert(concepts::IndirectlyProvidesLogTargets<TargetProvider, MType>);
