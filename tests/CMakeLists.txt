@@ -1,3 +1,5 @@
+add_subdirectory(Fixtures)
+
 add_executable(cpplogger_clitest)
 
 target_sources(cpplogger_clitest
@@ -28,6 +30,7 @@ target_sources(cpplogger_sane_defaults_test
 target_link_libraries(cpplogger_sane_defaults_test
     PRIVATE
         CppLogger::HeaderOnly
+        CppLoggerTest::DefaultFixtures
 )
 add_custom_target(run_cpplogger_sane_defaults COMMAND cpplogger_sane_defaults_test)
 add_dependencies(run_cpplogger_sane_defaults cpplogger_sane_defaults_test)

@@ -10,6 +10,61 @@
 /** Base namespace. */
 namespace logger {
 
+struct Logger;
+struct DefaultLogger;
+
+struct Logger {
+  template <MessageType MType, typename Self>
+  void write(this Self &&self, std::string_view message,
+             const std::source_location &location) {
+    if constexpr (logger::concepts::FiltersLog<Self, MType>) {
+      if (!self.template filter<MType>(location))
+        return;
+    }
+    if constexpr (logger::concepts::ProvidesLogOutputTargets<Self, MType> &&
+                  logger::concepts::PrintsToLog<Self, MType>) {
+      std::apply(
+          [&self, &location,
+           &message]<logger::concepts::LogTarget... Ts>(Ts &&...ts) {
+            (self.template print<MType>(std::osyncstream{ts}, location,
+                                        message),
+             ...);
+          },
+          self.template targets<MType>(location));
+    }
+  }
+
+  template <MessageType MType, typename Self, typename... Args>
+  void log(this Self &&self, LogFormatString<std::type_identity_t<Args>...> fmt,
+           Args &&...args) {
+    self.template write<MType>(std::format(fmt, std::forward<Args>(args)...),
+                               fmt.location());
+  }
+};
+
+struct DefaultLogger : public logger::Logger {
+  template <MessageType MType>
+  auto targets(this auto &&self, const std::source_location &location) noexcept
+      -> logger::concepts::TupleLikeOfLogTargets decltype(auto) {
+    return (typename logger::MessageTypeTraits<MType>::Targets){}
+        .template targets<MType>(location);
+  }
+
+  template <MessageType MType>
+  bool filter(const std::source_location &location) const noexcept {
+    return (typename logger::MessageTypeTraits<MType>::Filter){}
+        .template filter<MType>(location);
+  }
+
+  template <MessageType MType, logger::concepts::LogTarget Stream>
+  void print(this auto &&self, Stream &&stream,
+             const std::source_location &location,
+             std::string_view message) noexcept {
+    return (typename logger::MessageTypeTraits<MType>::Printer){}
+        .template print<MType>(std::forward<Stream>(stream), location, message);
+  }
+};
+
 /**
  * Base logging implementation.
  */
