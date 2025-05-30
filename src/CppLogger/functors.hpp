@@ -117,7 +117,7 @@ template <MessageType MType> struct MessageTypeTraits {
 
   /** Provider of log targets */
   using TargetProvider = DefaultLogTargetProviders;
-  static_assert(concepts::IndirectlyProvidesLogTargets<TargetProvider, MType>);
+  static_assert(concepts::ProvidesIndirectLogTargets<TargetProvider, MType>);
 
   /** Printer for log messages */
   using Printer = DefaultLogPrinter;

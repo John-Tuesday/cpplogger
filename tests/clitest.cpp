@@ -14,7 +14,7 @@ template <> struct logger::LogTargetProviders<logger::DefaultImplTag> {
   }
 };
 
-static_assert(logger::concepts::IndirectlyProvidesLogTargets<
+static_assert(logger::concepts::ProvidesIndirectLogTargets<
               logger::DefaultLogTargetProviders, logger::MessageType::Warning>);
 
 namespace test {

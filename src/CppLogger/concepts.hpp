@@ -31,18 +31,16 @@ concept ProvidesLogOutputTargets = requires(T t) {
 
 /** Callable that returns a usable output stream. */
 template <typename T>
-concept ProvidesLogTarget = requires(T t) {
-  { t() } -> std::common_reference_with<std::ostream &>;
-};
+concept IndirectlyProvidesLogTarget = LogTarget<std::indirect_result_t<T>>;
 
 /**
  * Tuple-like struct of log target providers.
  */
 template <typename T>
-concept TupleLikeLogTargetProviders = requires(T t) {
+concept TupleLikeOfIndirectLogTargets = requires(T t) {
   {
     std::apply([]<typename... Args>
-                 requires(ProvidesLogTarget<Args> && ...)
+                 requires(IndirectlyProvidesLogTarget<Args> && ...)
                (Args &&...) constexpr { return; },
                t)
   };
@@ -50,16 +48,17 @@ concept TupleLikeLogTargetProviders = requires(T t) {
 
 /** Range of objects with constraint `ProvidesLogTarget`. */
 template <typename T>
-concept LogTargetProviderRange =
-    std::ranges::range<T> && ProvidesLogTarget<std::ranges::range_value_t<T>>;
+concept RangeOfIndirectLogTargets =
+    std::ranges::range<T> &&
+    IndirectlyProvidesLogTarget<std::ranges::range_value_t<T>>;
 
 /** Provides a range of log target provides. */
 template <typename T, MessageType M>
-concept IndirectlyProvidesLogTargets = requires(T t) {
+concept ProvidesIndirectLogTargets = requires(T t) {
   { t.template providers<M>() } noexcept;
   requires requires(decltype(t.template providers<M>()) r) {
-    requires(LogTargetProviderRange<decltype(r)> ||
-             TupleLikeLogTargetProviders<decltype(r)>);
+    requires(RangeOfIndirectLogTargets<decltype(r)> ||
+             TupleLikeOfIndirectLogTargets<decltype(r)>);
   };
 };
 
@@ -75,10 +74,10 @@ concept PrintsToLog = requires(T t) {
 };
 
 /** Meets the requirements of a log filter. */
-template <typename T, MessageType M>
+template <typename T, MessageType MType>
 concept FiltersLog = requires(T t) {
   {
-    t.template filter<M>(std::declval<std::source_location>())
+    t.template filter<MType>(std::declval<std::source_location>())
   } noexcept -> std::same_as<bool>;
 };
 

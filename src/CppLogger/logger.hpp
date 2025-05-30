@@ -70,7 +70,7 @@ struct DefaultLogger : public logger::Logger {
  */
 template <
     MessageType MType,
-    concepts::IndirectlyProvidesLogTargets<MType> Providers =
+    concepts::ProvidesIndirectLogTargets<MType> Providers =
         MessageTypeTraits<MType>::TargetProvider,
     concepts::PrintsToLog<MType> Printer = MessageTypeTraits<MType>::Printer,
     concepts::FiltersLog<MType> Filter = MessageTypeTraits<MType>::Filter,
@@ -83,7 +83,8 @@ void log(LogFormatString<std::type_identity_t<Args>...> fmt,
       std::format(std::move(fmt), std::forward<Args>(args)...);
   Printer printer{};
   auto fns = [&message, location = fmt.location(),
-              &printer]<concepts::ProvidesLogTarget... Ps>(Ps &&...ps) {
+              &printer]<concepts::IndirectlyProvidesLogTarget... Ps>(
+                 Ps &&...ps) {
     (
         [&](auto &&s) {
           printer.template print<MType>(std::osyncstream{s}, location, message);
@@ -92,9 +93,9 @@ void log(LogFormatString<std::type_identity_t<Args>...> fmt,
   };
   using ProvidersType =
       decltype(std::declval<Providers>().template providers<MType>());
-  if constexpr (concepts::TupleLikeLogTargetProviders<ProvidersType>) {
+  if constexpr (concepts::TupleLikeOfIndirectLogTargets<ProvidersType>) {
     std::apply(fns, Providers{}.template providers<MType>());
-  } else if constexpr (concepts::LogTargetProviderRange<ProvidersType>) {
+  } else if constexpr (concepts::RangeOfIndirectLogTargets<ProvidersType>) {
     for (auto p : Providers{}.template providers<MType>()) {
       fns(p());
     }
