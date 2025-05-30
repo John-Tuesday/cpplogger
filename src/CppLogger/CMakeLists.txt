@@ -10,6 +10,7 @@ target_sources(cpplogger_header_only
         "$<INSTALL_INTERFACE:${CMAKE_INCLUDE_INSTALL_DIR}>"
     FILES
         concepts.hpp
+        functors.hpp
         logger.hpp
         message.hpp
 )
