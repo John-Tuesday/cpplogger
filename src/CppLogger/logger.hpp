@@ -13,7 +13,29 @@ namespace logger {
 struct Logger;
 struct DefaultLogger;
 
+/**
+ * Compile-time interface for writing logs.
+ *
+ * Provides default logging behavior which can be customize by satisfying
+ * certain concepts in `logger::concepts`.
+ */
 struct Logger {
+  /**
+   * Write logs to output targets.
+   *
+   * This is the function you should call if you want chain loggers together.
+   *
+   * Filtering is enforced if `Self` supports `logger::concepts::FiltersLog`.
+   * Output targets are be provided by `Self` when it satifies
+   * `logger::concepts::ProvidesLogOutputTargets`. Likewise, printing behavior
+   * is be provided by satisfying `logger::concepts::PrintsToLog`.
+   *
+   * The intention is to not need to customize this function directly in order
+   * to accomplish any custom behavior like formatting differently per target.
+   *
+   * @param[in] message log text common to all targets and printers.
+   * @param[in] location describes the context of the log message.
+   */
   template <MessageType MType, typename Self>
   void write(this Self &&self, std::string_view message,
              const std::source_location &location) {
@@ -34,6 +56,14 @@ struct Logger {
     }
   }
 
+  /**
+   * Format and write a log message.
+   *
+   * Formats the input, then calls `write()` which where the core logic lies.
+   *
+   * @param[in] fmt format string.
+   * @param[in] args values to be formatted
+   */
   template <MessageType MType, typename Self, typename... Args>
   void log(this Self &&self, LogFormatString<std::type_identity_t<Args>...> fmt,
            Args &&...args) {
@@ -42,6 +72,10 @@ struct Logger {
   }
 };
 
+/**
+ * Logging interface which default to implementations provided by
+ * `logger::MessageTypeTraits`.
+ */
 struct DefaultLogger : public logger::Logger {
   template <MessageType MType>
   auto targets(this auto &&self, const std::source_location &location) noexcept

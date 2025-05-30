@@ -30,7 +30,15 @@ using DefaultLogFilter = LogFilter<DefaultImplTag>;
 
 template <MessageType> struct MessageTypeTraits;
 
+/**
+ * Injectable provider of logging output targets.
+ */
 template <typename> struct LogTargets {
+  /**
+   * Given some logging context, provide logging targets.
+   *
+   * @return loging output targets
+   */
   template <MessageType>
   auto targets(const std::source_location &) noexcept
       -> logger::concepts::TupleLikeOfLogTargets decltype(auto) {

@@ -14,14 +14,25 @@ enum class MessageType;
  */
 namespace logger::concepts {
 
+/**
+ * Output device used when writing logs
+ */
 template <typename T>
 concept LogTarget = std::constructible_from<std::osyncstream, T>;
 
+/**
+ * Tuple-Like type whose elements all satisfy `LogTarget`.
+ */
 template <typename T>
 concept TupleLikeOfLogTargets = requires {
   std::apply([]<LogTarget... Args>(Args &&...) constexpr {}, std::declval<T>());
 };
 
+/**
+ * Provides a collection of output targets in response to logging context.
+ *
+ * @tparam MType type of logging message which will be written.
+ */
 template <typename T, MessageType MType>
 concept ProvidesLogOutputTargets = requires(T t) {
   {
