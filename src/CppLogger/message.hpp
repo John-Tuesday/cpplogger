@@ -11,6 +11,10 @@ enum class MessageType;
 template <MessageType> struct MessageTypeTraits;
 template <typename...> struct LogFormatString;
 
+struct LogContext : public std::source_location {};
+
+template <MessageType MType> struct MTypeContext : public LogContext {};
+
 /** Fundamental log message types. */
 enum class MessageType {
   /** Most severe. */

@@ -93,3 +93,41 @@ concept FiltersLog = requires(T t) {
 };
 
 } // namespace logger::concepts
+
+namespace logger {
+struct LogContext;
+}
+
+namespace logger::ctx::concepts {
+
+template <typename T>
+concept LogContextFrom = requires(T t, LogContext &ctx) { ctx = t; };
+
+template <typename T>
+concept ConstructibleLogContext =
+    LogContextFrom<T> &&
+    requires(std::source_location location) { T{location}; };
+
+template <typename T>
+concept ProvidesLogOutputTargets = requires(T t) {
+  {
+    t.targets(std::declval<logger::LogContext>())
+  } -> logger::concepts::TupleLikeOfLogTargets;
+};
+
+template <typename T>
+concept FiltersLog = requires(T t) {
+  {
+    t.filter(std::declval<logger::LogContext>())
+  } noexcept -> std::same_as<bool>;
+};
+
+template <typename T>
+concept PrintsToLog = requires(T t) {
+  {
+    t.print(std::declval<std::ostream &>(), std::declval<logger::LogContext>(),
+            std::declval<std::string_view>())
+  };
+};
+
+} // namespace logger::ctx::concepts

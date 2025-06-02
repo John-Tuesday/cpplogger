@@ -187,3 +187,47 @@ void logVerbose(LogFormatString<std::type_identity_t<Args>...> fmt,
 }
 
 } // namespace logger
+
+namespace logger::ctx {
+
+struct LoggerBase;
+
+template <typename Logger, concepts::LogContextFrom Context>
+void writeLog(Logger &&logger, std::string_view message, Context &&context);
+
+template <typename Logger, concepts::LogContextFrom Context>
+void writeLog(Logger &&logger, std::string_view message, Context &&context) {
+  if constexpr (concepts::FiltersLog<decltype(logger)>) {
+    if (!logger.filter(context)) {
+      return;
+    }
+  }
+  if constexpr (concepts::ProvidesLogOutputTargets<decltype(logger)> &&
+                concepts::PrintsToLog<decltype(logger)>) {
+    std::apply(
+        [&logger, &context,
+         &message]<logger::concepts::LogTarget... Ts>(Ts &&...ts) {
+          (logger.print(std::osyncstream{ts}, context, message), ...);
+        },
+        logger.targets(context));
+  }
+}
+
+struct LoggerBase {
+  template <concepts::LogContextFrom Context, typename Self>
+  void write(this Self &&self, std::string_view message, Context &&context) {
+    logger::ctx::writeLog(std::forward<Self>(self), message,
+                          std::forward<Context>(context));
+  }
+
+  template <concepts::ConstructibleLogContext Context = logger::LogContext,
+            typename Self, typename... Args>
+  void log(this Self &&self,
+           logger::LogFormatString<std::type_identity_t<Args>...> fmt,
+           Args &&...args) {
+    std::string message = std::format(fmt, std::forward<Args>(args)...);
+    self.write(message, Context{fmt.location()});
+  }
+};
+
+} // namespace logger::ctx
