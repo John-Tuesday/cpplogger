@@ -1,35 +1,12 @@
-#include "CppLogger/concepts.hpp"
 #include <CppLogger/logger.hpp>
 
-#include "Fixtures/tempfiles.hpp"
+#include "Fixtures/DefaultImpl.hpp"
 
 #include <cassert>
-#include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <print>
-#include <tuple>
 
 namespace test {
-
-struct LogTargetsBasicFileLog : public logger::LoggerDefaults<void> {
-
-  template <logger::concepts::LogContextFrom Context>
-  auto targets(const Context &location) const noexcept
-      -> logger::concepts::TupleLikeOfLogTargets decltype(auto) {
-    return std::tuple(std::ref(std::clog), std::ofstream{logPath()});
-  }
-
-  static std::filesystem::path logPath();
-};
-
-std::filesystem::path LogTargetsBasicFileLog::logPath() {
-  std::filesystem::path path = test::tempDir();
-  std::error_code ec{};
-  std::filesystem::create_directory(path, ec);
-  assert(!ec);
-  return path / "test.log";
-}
 
 void testBasic();
 
@@ -53,9 +30,9 @@ void test::testBasic() {
 void test::testFileLog() {
   constexpr auto mtype = logger::MessageType::Info;
   constexpr std::string_view expect = "info: 5 == 5";
-  logger::log<logger::MTypeContext<mtype>, test::LogTargetsBasicFileLog>(
-      "info: 5 == {}", 5);
-  std::ifstream logIn{test::LogTargetsBasicFileLog::logPath()};
+  logger::log<logger::MTypeContext<mtype>,
+              logger::test::LogTargetsBasicFileLog>("info: 5 == {}", 5);
+  std::ifstream logIn{logger::test::LogTargetsBasicFileLog::logPath()};
   bool noLineRead{true};
   for (std::string line; std::getline(logIn, line, '\n');) {
     noLineRead = false;

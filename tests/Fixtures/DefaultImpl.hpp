@@ -1,6 +1,11 @@
 #pragma once
 
+#include "tempfiles.hpp"
+
 #include "CppLogger/logger.hpp"
+
+#include <fstream>
+#include <tuple>
 
 namespace logger::test {
 
@@ -18,6 +23,25 @@ template <typename... Ts> struct ChainLogger : public LoggerBase {
     (Ts{}.write(context, message), ...);
   }
 };
+
+struct LogTargetsBasicFileLog : public logger::LoggerDefaults<void> {
+
+  template <logger::concepts::LogContextFrom Context>
+  auto targets(const Context &location) const noexcept
+      -> logger::concepts::TupleLikeOfLogTargets decltype(auto) {
+    return std::tuple(std::ref(std::clog), std::ofstream{logPath()});
+  }
+
+  static std::filesystem::path logPath();
+};
+
+inline std::filesystem::path LogTargetsBasicFileLog::logPath() {
+  std::filesystem::path path = test::tempDir();
+  std::error_code ec{};
+  std::filesystem::create_directory(path, ec);
+  assert(!ec);
+  return path / "test.log";
+}
 
 } // namespace logger::test
 

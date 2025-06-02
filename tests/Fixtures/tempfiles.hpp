@@ -5,7 +5,7 @@
 #include <iostream>
 #include <print>
 
-namespace test {
+namespace logger::test {
 
 inline std::filesystem::path tempDir() {
   std::error_code ec{};
@@ -20,4 +20,4 @@ inline std::filesystem::path tempDir() {
   return path;
 }
 
-} // namespace test
+} // namespace logger::test
