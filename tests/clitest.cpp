@@ -1,6 +1,8 @@
 #include "CppLogger/concepts.hpp"
 #include <CppLogger/logger.hpp>
 
+#include "Fixtures/tempfiles.hpp"
+
 #include <cassert>
 #include <filesystem>
 #include <fstream>
@@ -9,19 +11,6 @@
 #include <tuple>
 
 namespace test {
-
-std::filesystem::path tempDir() {
-  std::error_code ec{};
-  std::filesystem::path path =
-      std::filesystem::temp_directory_path(ec) / "CppLogger";
-  if (ec) {
-    std::println(std::clog, "Error creating temp dir: '{}'", ec.message());
-    assert(!ec);
-    return std::filesystem::path{};
-  }
-  assert(!ec);
-  return path;
-}
 
 struct LogTargetsBasicFileLog : public logger::LoggerDefaults<void> {
 

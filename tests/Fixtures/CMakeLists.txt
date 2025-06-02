@@ -7,6 +7,7 @@ target_sources(cpplogger_default_fixtures
         "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>"
     FILES
         DefaultImpl.hpp
+        tempfiles.hpp
 )
 
 target_link_libraries(cpplogger_default_fixtures
