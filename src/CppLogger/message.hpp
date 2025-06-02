@@ -8,8 +8,24 @@ namespace logger {
 enum class MessageType;
 template <typename...> struct LogFormatString;
 
+/**
+ * Base interface for logging context.
+ *
+ * Essentially a wrapper around `std::source_location`.
+ *
+ * This type may be subclassed to add custom functionality to context's given to
+ * various logger functions. Simply provide the type when invoking a log
+ * function. Consumers can then distinguish different context types by way of
+ * function overloads or template specialization.
+ *
+ * Custom logging context classes must be constructible from
+ * `std::source_location` when used as the template argument of a call to log.
+ */
 struct LogContext : public std::source_location {};
 
+/**
+ * LogContext with basic severity levels.
+ */
 template <MessageType MType> struct MTypeContext : public LogContext {};
 
 /** Fundamental log message types. */
