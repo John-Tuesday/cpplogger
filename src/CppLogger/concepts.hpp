@@ -14,14 +14,23 @@ struct LogContext;
  */
 namespace logger::concepts {
 
+/**
+ * Provides read access to log context.
+ */
 template <typename T>
 concept LogContextFrom = requires(T t, LogContext &ctx) { ctx = t; };
 
+/**
+ * Context type which can be constructed from `std::source_location`.
+ */
 template <typename T>
 concept ConstructibleLogContext =
     LogContextFrom<T> &&
     requires(std::source_location location) { T{location}; };
 
+/**
+ * Stream which can be used as an argument of type `std::ostream&`.
+ */
 template <typename T>
 concept PrintableStream = !std::is_const_v<T> && requires(T t) {
   std::declval<void(std::ostream &)>()(t);
