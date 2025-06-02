@@ -35,7 +35,7 @@ template <typename T> struct LogHelpers {
     return true;
   }
 
-  template <logger::concepts::LogTarget Stream>
+  template <logger::concepts::PrintableStream Stream>
   void print(Stream &&stream, const logger::LogContext &context,
              std::string_view message) {
     std::println(stream, "LogContext: {}", message);
@@ -62,7 +62,7 @@ struct TemplHelpers {
   }
 
   template <concepts::LogContextFrom Context,
-            logger::concepts::LogTarget Stream>
+            logger::concepts::PrintableStream Stream>
   void print(Stream &&stream, Context &&context, std::string_view message) {
     std::println(stream, "TemplCtx: {}", message);
   }

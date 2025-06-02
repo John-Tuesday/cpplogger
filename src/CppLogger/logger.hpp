@@ -73,7 +73,7 @@ template <typename> struct LoggerDefaults : public LoggerBase {
   }
 
   template <concepts::LogContextFrom Context,
-            logger::concepts::LogTarget Stream>
+            logger::concepts::PrintableStream Stream>
   void print(Stream &&stream, const Context &context,
              std::string_view msg) const noexcept {
     std::println(stream, "{} {}:{}", context.file_name(), context.line(),

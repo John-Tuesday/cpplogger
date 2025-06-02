@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <source_location>
+#include <syncstream>
 #include <utility>
 
 namespace logger {
@@ -21,11 +22,16 @@ concept ConstructibleLogContext =
     LogContextFrom<T> &&
     requires(std::source_location location) { T{location}; };
 
+template <typename T>
+concept PrintableStream = !std::is_const_v<T> && requires(T t) {
+  std::declval<void(std::ostream &)>()(t);
+};
+
 /**
  * Output device used when writing logs
  */
 template <typename T>
-concept LogTarget = std::constructible_from<std::osyncstream, T>;
+concept LogTarget = requires(T t) { std::osyncstream{t}; };
 
 /**
  * Tuple-Like type whose elements all satisfy `LogTarget`.
@@ -50,12 +56,11 @@ concept ProvidesLogOutputTargets = requires(T t) {
  * Provides a function to print a log messages.
  */
 template <typename T>
-concept PrintsToLog = requires(T t) {
-  {
-    t.print(std::declval<std::ostream &>(), std::declval<logger::LogContext>(),
-            std::declval<std::string_view>())
-  };
-};
+concept PrintsToLog =
+    requires(T t, std::ostream stream, const logger::LogContext &context,
+             std::string_view message) {
+      { t.print(stream, context, message) };
+    };
 
 /**
  * Meets the requirements of a log filter.
