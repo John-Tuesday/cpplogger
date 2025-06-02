@@ -7,12 +7,21 @@
 
 namespace logger {
 enum class MessageType;
-}
+struct LogContext;
+} // namespace logger
 
 /**
  * @brief Constraints for logging helper classes.
  */
 namespace logger::concepts {
+
+template <typename T>
+concept LogContextFrom = requires(T t, LogContext &ctx) { ctx = t; };
+
+template <typename T>
+concept ConstructibleLogContext =
+    LogContextFrom<T> &&
+    requires(std::source_location location) { T{location}; };
 
 /**
  * Output device used when writing logs
@@ -30,15 +39,14 @@ concept TupleLikeOfLogTargets = requires {
 
 /**
  * Provides a collection of output targets in response to logging context.
- *
- * @tparam MType type of logging message which will be written.
  */
-template <typename T, MessageType MType>
+template <typename T>
 concept ProvidesLogOutputTargets = requires(T t) {
   {
-    t.template targets<MType>(std::declval<const std::source_location &>())
-  } -> TupleLikeOfLogTargets;
+    t.targets(std::declval<logger::LogContext>())
+  } -> logger::concepts::TupleLikeOfLogTargets;
 };
+;
 
 /** Callable that returns a usable output stream. */
 template <typename T>
@@ -76,52 +84,6 @@ concept ProvidesIndirectLogTargets = requires(T t) {
 /**
  * Provides a function to print a log messages.
  */
-template <typename T, MessageType MType>
-concept PrintsToLog = requires(T t) {
-  {
-    t.template print<MType>(std::declval<std::ostream &>(),
-                            std::declval<std::source_location>(), "message")
-  };
-};
-
-/** Meets the requirements of a log filter. */
-template <typename T, MessageType MType>
-concept FiltersLog = requires(T t) {
-  {
-    t.template filter<MType>(std::declval<std::source_location>())
-  } noexcept -> std::same_as<bool>;
-};
-
-} // namespace logger::concepts
-
-namespace logger {
-struct LogContext;
-}
-
-namespace logger::ctx::concepts {
-
-template <typename T>
-concept LogContextFrom = requires(T t, LogContext &ctx) { ctx = t; };
-
-template <typename T>
-concept ConstructibleLogContext =
-    LogContextFrom<T> &&
-    requires(std::source_location location) { T{location}; };
-
-template <typename T>
-concept ProvidesLogOutputTargets = requires(T t) {
-  {
-    t.targets(std::declval<logger::LogContext>())
-  } -> logger::concepts::TupleLikeOfLogTargets;
-};
-
-template <typename T>
-concept FiltersLog = requires(T t) {
-  {
-    t.filter(std::declval<logger::LogContext>())
-  } noexcept -> std::same_as<bool>;
-};
-
 template <typename T>
 concept PrintsToLog = requires(T t) {
   {
@@ -130,4 +92,14 @@ concept PrintsToLog = requires(T t) {
   };
 };
 
-} // namespace logger::ctx::concepts
+/**
+ * Meets the requirements of a log filter.
+ */
+template <typename T>
+concept FiltersLog = requires(T t) {
+  {
+    t.filter(std::declval<logger::LogContext>())
+  } noexcept -> std::same_as<bool>;
+};
+
+} // namespace logger::concepts

@@ -1,14 +1,11 @@
 #pragma once
 
-#include "functors.hpp"
-
 #include <format>
 #include <source_location>
 
 namespace logger {
 
 enum class MessageType;
-template <MessageType> struct MessageTypeTraits;
 template <typename...> struct LogFormatString;
 
 struct LogContext : public std::source_location {};
@@ -64,26 +61,6 @@ struct LogFormatString
 
 private:
   std::source_location m_location{};
-};
-
-/**
- * Provides the default types used for logging a message of a given type.
- */
-template <MessageType MType> struct MessageTypeTraits {
-  using Targets = DefaultLogTargets;
-  static_assert(concepts::ProvidesLogOutputTargets<Targets, MType>);
-
-  /** Provider of log targets */
-  using TargetProvider = DefaultLogTargetProviders;
-  static_assert(concepts::ProvidesIndirectLogTargets<TargetProvider, MType>);
-
-  /** Printer for log messages */
-  using Printer = DefaultLogPrinter;
-  static_assert(concepts::PrintsToLog<Printer, MType>);
-
-  /** Filter of log messages */
-  using Filter = DefaultLogFilter;
-  static_assert(concepts::FiltersLog<Filter, MType>);
 };
 
 } // namespace logger
