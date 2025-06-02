@@ -191,9 +191,23 @@ void logVerbose(LogFormatString<std::type_identity_t<Args>...> fmt,
 namespace logger::ctx {
 
 struct LoggerBase;
+template <typename> struct LoggerDefaults;
+
+template <typename Logger, concepts::ConstructibleLogContext Context,
+          typename... Args>
+  requires std::default_initializable<Logger>
+void log(LogFormatString<std::type_identity_t<Args>...> fmt, Args &&...args);
 
 template <typename Logger, concepts::LogContextFrom Context>
 void writeLog(Logger &&logger, Context &&context, std::string_view message);
+
+template <typename Logger, concepts::ConstructibleLogContext Context,
+          typename... Args>
+  requires std::default_initializable<Logger>
+void log(LogFormatString<std::type_identity_t<Args>...> fmt, Args &&...args) {
+  Logger{}.write(Context{fmt.location()},
+                 std::format(fmt, std::forward<Args>(args)...));
+}
 
 template <typename Logger, concepts::LogContextFrom Context>
 void writeLog(Logger &&logger, Context &&context, std::string_view message) {
@@ -227,6 +241,27 @@ struct LoggerBase {
            Args &&...args) {
     std::string message = std::format(fmt, std::forward<Args>(args)...);
     self.write(Context{fmt.location()}, message);
+  }
+};
+
+template <typename> struct LoggerDefaults : public LoggerBase {
+  template <concepts::LogContextFrom Context>
+  auto targets(const Context &) noexcept
+      -> logger::concepts::TupleLikeOfLogTargets decltype(auto) {
+    return std::tuple(std::ref(std::cerr));
+  }
+
+  template <concepts::LogContextFrom Context>
+  bool filter(const Context &) const noexcept {
+    return true;
+  }
+
+  template <concepts::LogContextFrom Context,
+            logger::concepts::LogTarget Stream>
+  void print(Stream &&stream, const Context &context,
+             std::string_view msg) const noexcept {
+    std::println(stream, "{} {}:{}", context.file_name(), context.line(),
+                 context.column(), msg);
   }
 };
 
