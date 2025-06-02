@@ -18,7 +18,9 @@ namespace logger::concepts {
  * Provides read access to log context.
  */
 template <typename T>
-concept LogContextFrom = requires(T t, LogContext &ctx) { ctx = t; };
+concept LogContextFrom = requires(T t) {
+  std::declval<void(const LogContext &)>()(std::forward<T>(t));
+};
 
 /**
  * Context type which can be constructed from `std::source_location`.
