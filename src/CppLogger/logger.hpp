@@ -193,10 +193,10 @@ namespace logger::ctx {
 struct LoggerBase;
 
 template <typename Logger, concepts::LogContextFrom Context>
-void writeLog(Logger &&logger, std::string_view message, Context &&context);
+void writeLog(Logger &&logger, Context &&context, std::string_view message);
 
 template <typename Logger, concepts::LogContextFrom Context>
-void writeLog(Logger &&logger, std::string_view message, Context &&context) {
+void writeLog(Logger &&logger, Context &&context, std::string_view message) {
   if constexpr (concepts::FiltersLog<decltype(logger)>) {
     if (!logger.filter(context)) {
       return;
@@ -215,9 +215,9 @@ void writeLog(Logger &&logger, std::string_view message, Context &&context) {
 
 struct LoggerBase {
   template <concepts::LogContextFrom Context, typename Self>
-  void write(this Self &&self, std::string_view message, Context &&context) {
-    logger::ctx::writeLog(std::forward<Self>(self), message,
-                          std::forward<Context>(context));
+  void write(this Self &&self, Context &&context, std::string_view message) {
+    logger::ctx::writeLog(std::forward<Self>(self),
+                          std::forward<Context>(context), message);
   }
 
   template <concepts::ConstructibleLogContext Context = logger::LogContext,
@@ -226,7 +226,7 @@ struct LoggerBase {
            logger::LogFormatString<std::type_identity_t<Args>...> fmt,
            Args &&...args) {
     std::string message = std::format(fmt, std::forward<Args>(args)...);
-    self.write(message, Context{fmt.location()});
+    self.write(Context{fmt.location()}, message);
   }
 };
 
