@@ -1,7 +1,6 @@
 #pragma once
 
 #include "concepts.hpp"
-#include "message.hpp"
 
 #include <iostream>
 #include <print>
@@ -28,8 +27,6 @@ using DefaultLogPrinter = LogPrinter<DefaultImplTag>;
 template <typename> struct LogFilter;
 using DefaultLogFilter = LogFilter<DefaultImplTag>;
 
-template <MessageType> struct MessageTypeTraits;
-
 /**
  * Injectable provider of logging output targets.
  */
@@ -52,14 +49,14 @@ template <typename> struct LogTargets {
  *
  * Specialize for `DefaultImplTag` to define custom behavior.
  */
-template <typename T> struct LogTargetProviders {
+template <typename> struct LogTargetProviders {
 
   /**
    * @return a range of target providers to be used for a given `MessageType`.
    *
    * Default implementation returns an empty view.
    */
-  template <MessageType M> auto providers() const noexcept -> decltype(auto) {
+  template <MessageType> auto providers() const noexcept -> decltype(auto) {
     return std::ranges::empty_view<std::ostream &(*)()>{};
   }
 };
@@ -67,7 +64,7 @@ template <typename T> struct LogTargetProviders {
 /**
  * Base implementation of a log printer.
  */
-template <typename T> struct LogPrinter {
+template <typename> struct LogPrinter {
   /**
    * Print log message to a given log target.
    *
@@ -99,7 +96,7 @@ template <typename T> struct LogPrinter {
  * Specialize this type for template argument `DefaultImplTag` to define
  * custom default filtering.
  */
-template <typename T> struct LogFilter {
+template <typename> struct LogFilter {
 
   /**
    * Determine if logging should be skipped for a particular `MessageType` and
@@ -109,31 +106,11 @@ template <typename T> struct LogFilter {
    *
    * @return `true` if the message should be logged, `false` otherwise.
    */
-  template <MessageType M>
+  template <MessageType>
   bool filter(const std::source_location
                   & /**< Source location of the log message */) const noexcept {
     return true;
   }
-};
-
-/**
- * Provides the default types used for logging a message of a given type.
- */
-template <MessageType MType> struct MessageTypeTraits {
-  using Targets = DefaultLogTargets;
-  static_assert(concepts::ProvidesLogOutputTargets<Targets, MType>);
-
-  /** Provider of log targets */
-  using TargetProvider = DefaultLogTargetProviders;
-  static_assert(concepts::ProvidesIndirectLogTargets<TargetProvider, MType>);
-
-  /** Printer for log messages */
-  using Printer = DefaultLogPrinter;
-  static_assert(concepts::PrintsToLog<Printer, MType>);
-
-  /** Filter of log messages */
-  using Filter = DefaultLogFilter;
-  static_assert(concepts::FiltersLog<Filter, MType>);
 };
 
 } // namespace logger
