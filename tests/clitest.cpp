@@ -1,3 +1,4 @@
+#include "CppLogger/concepts.hpp"
 #include <CppLogger/logger.hpp>
 
 #include <cassert>
@@ -32,11 +33,17 @@ std::filesystem::path tempDir() {
   return path;
 }
 
-struct LogTargetsBasicFileLog {
+struct LogTargetsBasicFileLog : public logger::DefaultLogger {
   template <logger::MessageType MType>
   auto providers() const noexcept -> decltype(auto) {
     return std::tuple([]() -> std::ostream & { return std::clog; },
                       [this]() { return std::ref(this->m_logfile); });
+  }
+
+  template <logger::MessageType MType>
+  auto targets(const std::source_location &location) const noexcept
+      -> logger::concepts::TupleLikeOfLogTargets decltype(auto) {
+    return std::tuple(std::ref(std::clog), std::ref(m_logfile));
   }
 
   static std::filesystem::path logPath();

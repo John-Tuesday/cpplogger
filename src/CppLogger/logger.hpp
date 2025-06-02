@@ -13,6 +13,10 @@ namespace logger {
 struct Logger;
 struct DefaultLogger;
 
+template <MessageType MType, typename Logger>
+void writeLog(Logger &&, std::string_view message,
+              const std::source_location &location);
+
 /**
  * Compile-time interface for writing logs.
  *
@@ -39,21 +43,7 @@ struct Logger {
   template <MessageType MType, typename Self>
   void write(this Self &&self, std::string_view message,
              const std::source_location &location) {
-    if constexpr (logger::concepts::FiltersLog<Self, MType>) {
-      if (!self.template filter<MType>(location))
-        return;
-    }
-    if constexpr (logger::concepts::ProvidesLogOutputTargets<Self, MType> &&
-                  logger::concepts::PrintsToLog<Self, MType>) {
-      std::apply(
-          [&self, &location,
-           &message]<logger::concepts::LogTarget... Ts>(Ts &&...ts) {
-            (self.template print<MType>(std::osyncstream{ts}, location,
-                                        message),
-             ...);
-          },
-          self.template targets<MType>(location));
-    }
+    logger::writeLog<MType>(std::forward<Self>(self), message, location);
   }
 
   /**
@@ -99,6 +89,38 @@ struct DefaultLogger : public logger::Logger {
   }
 };
 
+template <MessageType MType, typename Logger>
+void writeLog(Logger &&logger, std::string_view message,
+              const std::source_location &location) {
+  if constexpr (logger::concepts::FiltersLog<decltype(logger), MType>) {
+    if (!logger.template filter<MType>(location)) {
+      return;
+    }
+  }
+  if constexpr (logger::concepts::ProvidesLogOutputTargets<decltype(logger),
+                                                           MType> &&
+                logger::concepts::PrintsToLog<decltype(logger), MType>) {
+    std::apply(
+        [&logger, &location,
+         &message]<logger::concepts::LogTarget... Ts>(Ts &&...ts) {
+          (logger.template print<MType>(std::osyncstream{ts}, location,
+                                        message),
+           ...);
+        },
+        logger.template targets<MType>(location));
+  }
+}
+
+template <MessageType MType, typename Logger = DefaultLogger, typename... Args>
+  requires std::default_initializable<Logger>
+void log(LogFormatString<std::type_identity_t<Args>...> fmt, Args &&...args) {
+  std::source_location location = fmt.location();
+  std::string message = std::format(fmt, std::forward<Args>(args)...);
+  (Logger{}).template write<MType>(message, location);
+  // writeLog<MType>( message, location);
+}
+
+namespace old {
 /**
  * Base logging implementation.
  */
@@ -135,6 +157,7 @@ void log(LogFormatString<std::type_identity_t<Args>...> fmt,
     }
   }
 }
+} // namespace old
 
 /**
  * Log using defaults for `MessageType::Fatal`.
