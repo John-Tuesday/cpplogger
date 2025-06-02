@@ -120,45 +120,6 @@ void log(LogFormatString<std::type_identity_t<Args>...> fmt, Args &&...args) {
   // writeLog<MType>( message, location);
 }
 
-namespace old {
-/**
- * Base logging implementation.
- */
-template <
-    MessageType MType,
-    concepts::ProvidesIndirectLogTargets<MType> Providers =
-        MessageTypeTraits<MType>::TargetProvider,
-    concepts::PrintsToLog<MType> Printer = MessageTypeTraits<MType>::Printer,
-    concepts::FiltersLog<MType> Filter = MessageTypeTraits<MType>::Filter,
-    typename... Args>
-void log(LogFormatString<std::type_identity_t<Args>...> fmt,
-         Args &&...args) noexcept {
-  if (!Filter{}.template filter<MType>(fmt.location()))
-    return;
-  std::string message =
-      std::format(std::move(fmt), std::forward<Args>(args)...);
-  Printer printer{};
-  auto fns = [&message, location = fmt.location(),
-              &printer]<concepts::IndirectlyProvidesLogTarget... Ps>(
-                 Ps &&...ps) {
-    (
-        [&](auto &&s) {
-          printer.template print<MType>(std::osyncstream{s}, location, message);
-        }(ps()),
-        ...);
-  };
-  using ProvidersType =
-      decltype(std::declval<Providers>().template providers<MType>());
-  if constexpr (concepts::TupleLikeOfIndirectLogTargets<ProvidersType>) {
-    std::apply(fns, Providers{}.template providers<MType>());
-  } else if constexpr (concepts::RangeOfIndirectLogTargets<ProvidersType>) {
-    for (auto p : Providers{}.template providers<MType>()) {
-      fns(p());
-    }
-  }
-}
-} // namespace old
-
 /**
  * Log using defaults for `MessageType::Fatal`.
  *
