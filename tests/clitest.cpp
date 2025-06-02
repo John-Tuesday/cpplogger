@@ -17,13 +17,10 @@ struct LogTargetsBasicFileLog : public logger::LoggerDefaults<void> {
   template <logger::concepts::LogContextFrom Context>
   auto targets(const Context &location) const noexcept
       -> logger::concepts::TupleLikeOfLogTargets decltype(auto) {
-    return std::tuple(std::ref(std::clog), std::ref(m_logfile));
+    return std::tuple(std::ref(std::clog), std::ofstream{logPath()});
   }
 
   static std::filesystem::path logPath();
-
-private:
-  mutable std::ofstream m_logfile{logPath()};
 };
 
 std::filesystem::path LogTargetsBasicFileLog::logPath() {
