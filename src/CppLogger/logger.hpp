@@ -1,7 +1,6 @@
 #pragma once
 
 #include "concepts.hpp"
-#include "functors.hpp"
 #include "message.hpp"
 
 #include <format>
