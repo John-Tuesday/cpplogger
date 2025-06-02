@@ -12,7 +12,7 @@ struct DoubleCerrLogger : public DefaultLogger {
   }
 };
 
-template <typename... Ts> struct ChainLogger : public Logger {
+template <typename... Ts> struct ChainLogger : public LoggerBase {
   template <MessageType MType, typename... Args>
   void log(LogFormatString<std::type_identity_t<Args>...> fmt, Args &&...args) {
     std::string message = std::format(fmt, std::forward<Args>(args)...);

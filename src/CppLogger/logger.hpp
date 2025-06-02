@@ -10,7 +10,7 @@
 /** Base namespace. */
 namespace logger {
 
-struct Logger;
+struct LoggerBase;
 struct DefaultLogger;
 
 template <MessageType MType, typename Logger>
@@ -23,7 +23,7 @@ void writeLog(Logger &&, std::string_view message,
  * Provides default logging behavior which can be customize by satisfying
  * certain concepts in `logger::concepts`.
  */
-struct Logger {
+struct LoggerBase {
   /**
    * Write logs to output targets.
    *
@@ -66,7 +66,7 @@ struct Logger {
  * Logging interface which default to implementations provided by
  * `logger::MessageTypeTraits`.
  */
-struct DefaultLogger : public logger::Logger {
+struct DefaultLogger : public logger::LoggerBase {
   template <MessageType MType>
   auto targets(this auto &&self, const std::source_location &location) noexcept
       -> logger::concepts::TupleLikeOfLogTargets decltype(auto) {
