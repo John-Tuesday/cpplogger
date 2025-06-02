@@ -8,16 +8,6 @@
 #include <print>
 #include <tuple>
 
-template <> struct logger::LogTargetProviders<logger::DefaultImplTag> {
-  template <logger::MessageType M>
-  auto providers() const noexcept -> decltype(auto) {
-    return std::tuple([]() -> std::ostream & { return std::clog; });
-  }
-};
-
-static_assert(logger::concepts::ProvidesIndirectLogTargets<
-              logger::DefaultLogTargetProviders, logger::MessageType::Warning>);
-
 namespace test {
 
 std::filesystem::path tempDir() {
@@ -33,15 +23,10 @@ std::filesystem::path tempDir() {
   return path;
 }
 
-struct LogTargetsBasicFileLog : public logger::DefaultLogger {
-  template <logger::MessageType MType>
-  auto providers() const noexcept -> decltype(auto) {
-    return std::tuple([]() -> std::ostream & { return std::clog; },
-                      [this]() { return std::ref(this->m_logfile); });
-  }
+struct LogTargetsBasicFileLog : public logger::LoggerDefaults<void> {
 
-  template <logger::MessageType MType>
-  auto targets(const std::source_location &location) const noexcept
+  template <logger::concepts::LogContextFrom Context>
+  auto targets(const Context &location) const noexcept
       -> logger::concepts::TupleLikeOfLogTargets decltype(auto) {
     return std::tuple(std::ref(std::clog), std::ref(m_logfile));
   }
@@ -82,7 +67,8 @@ void test::testBasic() {
 void test::testFileLog() {
   constexpr auto mtype = logger::MessageType::Info;
   constexpr std::string_view expect = "info: 5 == 5";
-  logger::log<mtype, test::LogTargetsBasicFileLog>("info: 5 == {}", 5);
+  logger::log<logger::MTypeContext<mtype>, test::LogTargetsBasicFileLog>(
+      "info: 5 == {}", 5);
   std::ifstream logIn{test::LogTargetsBasicFileLog::logPath()};
   bool noLineRead{true};
   for (std::string line; std::getline(logIn, line, '\n');) {
