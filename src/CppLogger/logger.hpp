@@ -60,6 +60,12 @@ struct LoggerBase {
   }
 };
 
+/**
+ * Logger with default implementations of the three helper functions.
+ *
+ * The default logger is `LoggerDefaults<logger::DefaultImplTag>`, but it may be
+ * specialized to change the default logger.
+ */
 template <typename> struct LoggerDefaults : public LoggerBase {
   template <concepts::LogContextFrom Context>
   auto targets(const Context &) noexcept
@@ -81,6 +87,9 @@ template <typename> struct LoggerDefaults : public LoggerBase {
   }
 };
 
+/**
+ * Provides the core logic for managing and writing logs.
+ */
 template <typename Logger, concepts::LogContextFrom Context>
 void writeLog(Logger &&logger, Context &&context, std::string_view message) {
   if constexpr (concepts::FiltersLog<decltype(logger)>) {
@@ -99,6 +108,9 @@ void writeLog(Logger &&logger, Context &&context, std::string_view message) {
   }
 }
 
+/**
+ * Create a formatted message and use a default constructed `Logger` to log it.
+ */
 template <concepts::ConstructibleLogContext Context, typename Logger,
           typename... Args>
   requires std::default_initializable<Logger>
