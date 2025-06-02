@@ -33,7 +33,42 @@ bool verifyLoggerCls() {
 
 } // namespace logger::test
 
+namespace test::ctx {
+
+template <typename T>
+concept LogHelper =
+    logger::concepts::ProvidesLogOutputTargets<T> &&
+    logger::concepts::FiltersLog<T> && logger::concepts::PrintsToLog<T>;
+
+void runTest() {
+  std::println("running ctx...");
+  {
+    static_assert(LogHelper<logger::DefaultLogger_>);
+    static_assert(LogHelper<logger::TemplLogger>);
+    static_assert(LogHelper<logger::LoggerDefaults<logger::DefaultImplTag>>);
+  }
+  {
+    logger::DefaultLogger_ deflog{};
+    deflog.log("Def log: {}", 5);
+  }
+  {
+    logger::TemplLogger temlog{};
+    temlog.log<logger::MTypeContext<logger::MessageType::Debug>>(
+        "Templ log(Debug): {}", 5);
+    temlog.log("Templ log(default): {}", 5);
+  }
+  {
+    logger::LoggerDefaults<logger::DefaultImplTag> injLog{};
+    injLog.log("Inj log: {}", 5);
+  }
+  std::println("finished ctx!");
+}
+
+} // namespace test::ctx
+
 int main() {
-  std::println("verifyLoggerCls: {}", logger::test::verifyLoggerCls());
+  std::println("\nBegin: {}\n", "sanedefaults");
+  test::ctx::runTest();
+  std::println("\nEnd: {}\n", "sanedefaults");
   return 0;
 }
