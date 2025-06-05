@@ -4,6 +4,7 @@
 #include "message.hpp"
 
 #include <format>
+#include <iterator>
 #include <print>
 #include <syncstream>
 
@@ -100,8 +101,22 @@ template <typename> struct LoggerDefaults : public LoggerBase {
   void print(
       Stream &&stream, const Context &context,
       std::basic_string_view<LogContextCharType<Context>> msg) const noexcept {
-    std::println(stream, "{} {}:{}", context.file_name(), context.line(),
+    std::println(stream, "{} {}:{} {}", context.file_name(), context.line(),
                  context.column(), msg);
+  }
+
+  template <
+      concepts::LogContextLike Context,
+      logger::concepts::PrintableStream<LogContextCharType<Context>> Stream>
+    requires std::same_as<LogContextCharType<Context>, wchar_t>
+  void print(
+      Stream &&stream, const Context &context,
+      std::basic_string_view<LogContextCharType<Context>> msg) const noexcept {
+    std::string_view fileName{context.file_name()};
+    std::format_to(std::ostream_iterator<wchar_t, wchar_t>(stream),
+                   L"{} {}:{} {}",
+                   std::wstring{fileName.begin(), fileName.end()},
+                   context.line(), context.column(), msg);
   }
 };
 

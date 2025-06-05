@@ -78,6 +78,8 @@ void runTest() {
   {
     logger::LoggerDefaults<logger::DefaultImplTag> injLog{};
     injLog.log<Cxt>("Inj log: {}", 5);
+    injLog.log<logger::MTypeContext<logger::MessageType::Debug, wchar_t>>(
+        L"Inj log: {}", 5);
   }
   std::println("finished ctx!");
 }
