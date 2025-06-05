@@ -15,14 +15,17 @@ struct DefaultImplTag;
 struct LoggerBase;
 template <typename> struct LoggerDefaults;
 
-template <concepts::ConstructibleLogContext Context,
-          typename Logger = LoggerDefaults<logger::DefaultImplTag>,
-          typename... Args>
-  requires std::default_initializable<Logger>
-void log(LogFormatString<std::type_identity_t<Args>...> fmt, Args &&...args);
+template <typename Context, typename Logger, typename CharT, typename... Args>
+  requires std::default_initializable<Logger> &&
+           concepts::ConstructibleLogContext<Context, CharT>
+void log(LogFormatString<CharT, std::type_identity_t<Args>...> fmt,
+         Args &&...args);
 
-template <typename Logger, concepts::LogContextFrom Context>
-void writeLog(Logger &&logger, Context &&context, std::string_view message);
+template <typename Context, typename Logger, typename CharT, typename... Args>
+  requires std::default_initializable<Logger> &&
+           concepts::ConstructibleLogContext<Context, CharT>
+void writeLog(Logger &&logger, Context &&context,
+              std::basic_string_view<CharT> message);
 
 /**
  * Compile-time interface for writing logs.
@@ -36,8 +39,9 @@ struct LoggerBase {
    *
    * This is the function you should call if you want chain loggers together.
    */
-  template <concepts::LogContextFrom Context, typename Self>
-  void write(this Self &&self, Context &&context, std::string_view message) {
+  template <concepts::LogContextLike Context, typename Self>
+  void write(this Self &&self, Context &&context,
+             std::basic_string_view<LogContextCharType<Context>> message) {
     logger::writeLog(std::forward<Self>(self), std::forward<Context>(context),
                      message);
   }
@@ -50,10 +54,10 @@ struct LoggerBase {
    * @param[in] fmt format string.
    * @param[in] args values to be formatted
    */
-  template <concepts::ConstructibleLogContext Context = logger::LogContext,
-            typename Self, typename... Args>
+  template <typename Context, typename CharT, typename Self, typename... Args>
+    requires concepts::ConstructibleLogContext<Context, CharT>
   void log(this Self &&self,
-           logger::LogFormatString<std::type_identity_t<Args>...> fmt,
+           logger::LogFormatString<CharT, std::type_identity_t<Args>...> fmt,
            Args &&...args) {
     self.write(Context{fmt.location()},
                std::format(fmt, std::forward<Args>(args)...));
@@ -67,21 +71,24 @@ struct LoggerBase {
  * specialized to change the default logger.
  */
 template <typename> struct LoggerDefaults : public LoggerBase {
-  template <concepts::LogContextFrom Context>
+  template <concepts::LogContextLike Context>
   auto targets(const Context &) noexcept
-      -> logger::concepts::TupleLikeOfLogTargets decltype(auto) {
+      -> logger::concepts::TupleLikeOfLogTargets<
+          LogContextCharType<Context>> decltype(auto) {
     return std::tuple(std::ref(std::cerr));
   }
 
-  template <concepts::LogContextFrom Context>
+  template <concepts::LogContextLike Context>
   bool filter(const Context &) const noexcept {
     return true;
   }
 
-  template <concepts::LogContextFrom Context,
-            logger::concepts::PrintableStream Stream>
-  void print(Stream &&stream, const Context &context,
-             std::string_view msg) const noexcept {
+  template <
+      concepts::LogContextLike Context,
+      logger::concepts::PrintableStream<LogContextCharType<Context>> Stream>
+  void print(
+      Stream &&stream, const Context &context,
+      std::basic_string_view<LogContextCharType<Context>> msg) const noexcept {
     std::println(stream, "{} {}:{}", context.file_name(), context.line(),
                  context.column(), msg);
   }
@@ -90,19 +97,22 @@ template <typename> struct LoggerDefaults : public LoggerBase {
 /**
  * Provides the core logic for managing and writing logs.
  */
-template <typename Logger, concepts::LogContextFrom Context>
-void writeLog(Logger &&logger, Context &&context, std::string_view message) {
-  if constexpr (concepts::FiltersLog<decltype(logger)>) {
+template <typename Logger, concepts::LogContextLike Context>
+void writeLog(Logger &&logger, Context &&context,
+              std::basic_string_view<LogContextCharType<Context>> message) {
+  using CharT = LogContextCharType<Context>;
+  if constexpr (concepts::FiltersLog<decltype(logger), CharT>) {
     if (!logger.filter(context)) {
       return;
     }
   }
-  if constexpr (concepts::ProvidesLogOutputTargets<decltype(logger)> &&
-                concepts::PrintsToLog<decltype(logger)>) {
+  if constexpr (concepts::ProvidesLogOutputTargets<decltype(logger), CharT> &&
+                concepts::PrintsToLog<decltype(logger), CharT>) {
     std::apply(
         [&logger, &context,
-         &message]<logger::concepts::LogTarget... Ts>(Ts &&...ts) {
-          (logger.print(std::osyncstream{ts}, context, message), ...);
+         &message]<logger::concepts::LogTarget<CharT>... Ts>(Ts &&...ts) {
+          (logger.print(std::basic_osyncstream<CharT>{ts}, context, message),
+           ...);
         },
         logger.targets(context));
   }
@@ -111,11 +121,12 @@ void writeLog(Logger &&logger, Context &&context, std::string_view message) {
 /**
  * Create a formatted message and use a default constructed `Logger` to log it.
  */
-template <concepts::ConstructibleLogContext Context, typename Logger,
-          typename... Args>
-  requires std::default_initializable<Logger>
-void log(LogFormatString<std::type_identity_t<Args>...> fmt, Args &&...args) {
-  Logger{}.write(Context{fmt.location()},
+template <typename Context, typename Logger, typename CharT, typename... Args>
+  requires std::default_initializable<Logger> &&
+           concepts::ConstructibleLogContext<Context, CharT>
+void log(LogFormatString<CharT, std::type_identity_t<Args>...> fmt,
+         Args &&...args) {
+  Logger{}.write(Context{logger::LogContext<CharT>{fmt.location()}},
                  std::format(fmt, std::forward<Args>(args)...));
 }
 
@@ -125,11 +136,11 @@ void log(LogFormatString<std::type_identity_t<Args>...> fmt, Args &&...args) {
  * @param[in] fmt format string input
  * @param[in] args variables to formated
  */
-template <typename... Args>
-void logFatal(LogFormatString<std::type_identity_t<Args>...> fmt,
+template <typename CharT, typename... Args>
+void logFatal(LogFormatString<CharT, std::type_identity_t<Args>...> fmt,
               Args &&...args) noexcept {
-  log<MTypeContext<MessageType::Fatal>>(std::move(fmt),
-                                        std::forward<Args>(args)...);
+  log<MTypeContext<MessageType::Fatal, CharT>>(std::move(fmt),
+                                               std::forward<Args>(args)...);
 }
 
 /**
@@ -137,11 +148,11 @@ void logFatal(LogFormatString<std::type_identity_t<Args>...> fmt,
  *
  * @copydetails logFatal()
  */
-template <typename... Args>
-void logError(LogFormatString<std::type_identity_t<Args>...> fmt,
+template <typename CharT, typename... Args>
+void logError(LogFormatString<CharT, std::type_identity_t<Args>...> fmt,
               Args &&...args) noexcept {
-  log<MTypeContext<MessageType::Error>>(std::move(fmt),
-                                        std::forward<Args>(args)...);
+  log<MTypeContext<MessageType::Error, CharT>>(std::move(fmt),
+                                               std::forward<Args>(args)...);
 }
 
 /**
@@ -149,11 +160,11 @@ void logError(LogFormatString<std::type_identity_t<Args>...> fmt,
  *
  * @copydetails logFatal()
  */
-template <typename... Args>
-void logWarn(LogFormatString<std::type_identity_t<Args>...> fmt,
+template <typename CharT, typename... Args>
+void logWarn(LogFormatString<CharT, std::type_identity_t<Args>...> fmt,
              Args &&...args) noexcept {
-  log<MTypeContext<MessageType::Warning>>(std::move(fmt),
-                                          std::forward<Args>(args)...);
+  log<MTypeContext<MessageType::Warning, CharT>>(std::move(fmt),
+                                                 std::forward<Args>(args)...);
 }
 
 /**
@@ -161,11 +172,11 @@ void logWarn(LogFormatString<std::type_identity_t<Args>...> fmt,
  *
  * @copydetails logFatal()
  */
-template <typename... Args>
-void logInfo(LogFormatString<std::type_identity_t<Args>...> fmt,
+template <typename CharT, typename... Args>
+void logInfo(LogFormatString<CharT, std::type_identity_t<Args>...> fmt,
              Args &&...args) noexcept {
-  log<MTypeContext<MessageType::Info>>(std::move(fmt),
-                                       std::forward<Args>(args)...);
+  log<MTypeContext<MessageType::Info, CharT>>(std::move(fmt),
+                                              std::forward<Args>(args)...);
 }
 
 /**
@@ -173,11 +184,11 @@ void logInfo(LogFormatString<std::type_identity_t<Args>...> fmt,
  *
  * @copydetails logFatal()
  */
-template <typename... Args>
-void logDebug(LogFormatString<std::type_identity_t<Args>...> fmt,
+template <typename CharT, typename... Args>
+void logDebug(LogFormatString<CharT, std::type_identity_t<Args>...> fmt,
               Args &&...args) noexcept {
-  log<MTypeContext<MessageType::Debug>>(std::move(fmt),
-                                        std::forward<Args>(args)...);
+  log<MTypeContext<MessageType::Debug, CharT>>(std::move(fmt),
+                                               std::forward<Args>(args)...);
 }
 
 /**
@@ -185,11 +196,11 @@ void logDebug(LogFormatString<std::type_identity_t<Args>...> fmt,
  *
  * @copydetails logFatal()
  */
-template <typename... Args>
-void logVerbose(LogFormatString<std::type_identity_t<Args>...> fmt,
+template <typename CharT, typename... Args>
+void logVerbose(LogFormatString<CharT, std::type_identity_t<Args>...> fmt,
                 Args &&...args) noexcept {
-  log<MTypeContext<MessageType::Verbose>>(std::move(fmt),
-                                          std::forward<Args>(args)...);
+  log<MTypeContext<MessageType::Verbose, CharT>>(std::move(fmt),
+                                                 std::forward<Args>(args)...);
 }
 
 } // namespace logger

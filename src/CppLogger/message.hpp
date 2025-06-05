@@ -6,12 +6,14 @@
 namespace logger {
 
 enum class MessageType;
-template <typename...> struct LogFormatString;
+template <typename CharT, typename...> struct LogFormatString;
+template <typename CharT> struct LogContext;
 
 /**
  * Base interface for logging context.
  *
- * Essentially a wrapper around `std::source_location`.
+ * Essentially a wrapper around `std::source_location` with an alias to the
+ * `char` type for the log message.
  *
  * This type may be subclassed to add custom functionality to context's given to
  * various logger functions. Simply provide the type when invoking a log
@@ -21,12 +23,15 @@ template <typename...> struct LogFormatString;
  * Custom logging context classes must be constructible from
  * `std::source_location` when used as the template argument of a call to log.
  */
-struct LogContext : public std::source_location {};
+template <typename CharT> struct LogContext : public std::source_location {
+  using CharType = CharT;
+};
 
 /**
  * LogContext with basic severity levels.
  */
-template <MessageType MType> struct MTypeContext : public LogContext {};
+template <MessageType MType, typename CharT>
+struct MTypeContext : public LogContext<CharT> {};
 
 /** Fundamental log message types. */
 enum class MessageType {
@@ -45,9 +50,9 @@ enum class MessageType {
 };
 
 /** Format string with extra information useful when logging. */
-template <typename... Args>
+template <typename CharT = char, typename... Args>
 struct LogFormatString
-    : public std::format_string<std::type_identity_t<Args>...> {
+    : public std::basic_format_string<CharT, std::type_identity_t<Args>...> {
 
   /**
    * Forwards `fmt` to `std::format_string`.
@@ -63,7 +68,8 @@ struct LogFormatString
   template <typename T>
   consteval LogFormatString(
       T &&fmt, std::source_location location = std::source_location::current())
-      : std::format_string<std::type_identity_t<Args>...>(std::forward<T>(fmt)),
+      : std::basic_format_string<CharT, std::type_identity_t<Args>...>(
+            std::forward<T>(fmt)),
         m_location(location) {}
 
   /**
