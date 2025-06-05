@@ -8,7 +8,8 @@
 namespace logger {
 template <typename CharT> struct LogContext;
 
-template <typename T> using LogContextCharType = typename T::CharType;
+template <typename T>
+using LogContextCharType = typename std::remove_cvref_t<T>::CharType;
 } // namespace logger
 
 /**
@@ -20,10 +21,9 @@ namespace logger::concepts {
  * Provides read access to log context.
  */
 template <typename T, typename CharT>
-concept LogContextFrom = requires(T t, void f(const LogContext<CharT> &)) {
-  requires std::same_as<LogContextCharType<T>, CharT>;
-  f(std::forward<T>(t));
-};
+concept LogContextFrom =
+    std::same_as<LogContextCharType<T>, CharT> &&
+    requires(T t) { ([](const logger::LogContext<CharT> &) {})(t); };
 
 template <typename T>
 concept LogContextLike = LogContextFrom<T, LogContextCharType<T>>;
@@ -32,9 +32,13 @@ concept LogContextLike = LogContextFrom<T, LogContextCharType<T>>;
  * Context type which can be constructed from `std::source_location`.
  */
 template <typename T, typename CharT>
-concept ConstructibleLogContext =
-    LogContextFrom<T, CharT> &&
-    requires(std::source_location location) { T{LogContext<CharT>{location}}; };
+concept ConstructibleLogContext = LogContextFrom<T, CharT> && requires() {
+  T{std::declval<LogContext<CharT>>()};
+};
+
+template <typename T>
+concept ConstructibleLogContextLike =
+    ConstructibleLogContext<T, LogContextCharType<T>>;
 
 /**
  * Stream which can be used as an argument of type `std::ostream&`.
@@ -55,8 +59,7 @@ concept LogTarget = requires(T t) { std::basic_osyncstream<CharT>{t}; };
  */
 template <typename T, typename CharT>
 concept TupleLikeOfLogTargets = requires {
-  std::apply([]<LogTarget<CharT>... Args>(Args &&...) constexpr {},
-             std::declval<T>());
+  std::apply([]<LogTarget<CharT>... Args>(Args &&...) {}, std::declval<T>());
 };
 
 /**
@@ -86,5 +89,14 @@ template <typename T, typename CharT>
 concept FiltersLog = requires(T t, const logger::LogContext<CharT> &context) {
   { t.filter(context) } noexcept -> std::same_as<bool>;
 };
+
+template <typename T, typename Context>
+concept WritableLogger =
+    LogContextLike<Context> &&
+    requires(
+        T t, Context &&c,
+        std::basic_string_view<logger::LogContextCharType<Context>> message) {
+      t.write(std::forward<Context>(c), message);
+    };
 
 } // namespace logger::concepts

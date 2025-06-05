@@ -24,7 +24,7 @@ template <typename CharT> struct LogContext;
  * `std::source_location` when used as the template argument of a call to log.
  */
 template <typename CharT> struct LogContext : public std::source_location {
-  using CharType = CharT;
+  using CharType = std::remove_cvref_t<CharT>;
 };
 
 /**
@@ -50,7 +50,7 @@ enum class MessageType {
 };
 
 /** Format string with extra information useful when logging. */
-template <typename CharT = char, typename... Args>
+template <typename CharT, typename... Args>
 struct LogFormatString
     : public std::basic_format_string<CharT, std::type_identity_t<Args>...> {
 
