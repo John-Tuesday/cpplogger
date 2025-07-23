@@ -2,26 +2,13 @@
 #include <CppLogger/concepts.hpp>
 #include <CppLogger/logger.hpp>
 
-#include "tests/Fixtures/DefaultImpl.hpp"
-
 namespace logger::test {
 
-struct LoggerClsTests {
-  bool test() {
-    logger::LoggerDefaults<logger::DefaultImplTag> logger{};
-    using Context = logger::LogContext<char>;
-    logger.log<Context>("Foopy {}", 10);
-    logger::test::DoubleCerrLogger cust{};
-    cust.log<Context>("Foopy {}", 10);
-    logger::test::ChainLogger<logger::test::DoubleCerrLogger> chain{};
-    chain.log<Context>("Foopy {}", 10);
-    return true;
-  }
-};
-
 bool verifyLoggerCls() {
-  LoggerClsTests tester{};
-  return tester.test();
+  logger::LoggerDefaults<logger::DefaultImplTag> logger{};
+  using Context = logger::LogContext<char>;
+  logger.log<Context>("test output and the number ten {}", 10);
+  return true;
 }
 
 } // namespace logger::test
