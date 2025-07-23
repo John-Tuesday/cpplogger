@@ -1,6 +1,6 @@
-#include "CppLogger/message.hpp"
 #include <CppLogger/concepts.hpp>
 #include <CppLogger/logger.hpp>
+#include <CppLogger/message.hpp>
 
 namespace logger::test {
 

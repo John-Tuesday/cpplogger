@@ -1,7 +1,7 @@
 #pragma once
 
-#include "concepts.hpp"
-#include "message.hpp"
+#include <CppLogger/concepts.hpp>
+#include <CppLogger/message.hpp>
 
 #include <format>
 #include <iterator>

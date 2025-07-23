@@ -2,7 +2,7 @@
 
 #include "tempfiles.hpp"
 
-#include "CppLogger/logger.hpp"
+#include <CppLogger/logger.hpp>
 
 #include <fstream>
 #include <tuple>
