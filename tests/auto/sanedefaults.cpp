@@ -4,27 +4,6 @@
 
 #include "tests/Fixtures/DefaultImpl.hpp"
 
-template <>
-struct logger::LoggerDefaults<logger::DefaultImplTag>
-    : public logger::LoggerDefaults<void> {
-
-  template <logger::concepts::LogContextLike Context>
-    requires std::same_as<logger::LogContextCharType<Context>, char>
-  auto targets(const Context &) noexcept
-      -> logger::concepts::TupleLikeOfLogTargets<
-          LogContextCharType<Context>> decltype(auto) {
-    return std::tuple(std::ref(std::cerr));
-  }
-
-  template <logger::concepts::LogContextLike Context>
-    requires std::same_as<logger::LogContextCharType<Context>, wchar_t>
-  auto targets(const Context &) noexcept
-      -> logger::concepts::TupleLikeOfLogTargets<
-          LogContextCharType<Context>> decltype(auto) {
-    return std::tuple(std::ref(std::wcerr));
-  }
-};
-
 namespace logger::test {
 
 struct LoggerClsTests {
@@ -57,16 +36,14 @@ concept LogHelper = (sizeof...(CharTs) >= 1) &&
                      ...);
 
 void runTest() {
-  std::println("running ctx...");
   {
-    static_assert(LogHelper<logger::DefaultLogger_, char>);
     static_assert(LogHelper<logger::TemplLogger, char>);
     static_assert(
         LogHelper<logger::LoggerDefaults<logger::DefaultImplTag>, char>);
   }
   using Cxt = logger::MTypeContext<logger::MessageType::Info, char>;
   {
-    logger::DefaultLogger_ deflog{};
+    logger::LoggerDefaults<logger::DefaultImplTag> deflog{};
     deflog.log<Cxt>("Def log: {}", 5);
   }
   {

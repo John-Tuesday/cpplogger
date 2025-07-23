@@ -103,8 +103,6 @@ struct TemplHelpers {
   }
 };
 
-struct DefaultLogger_ : public LoggerBase, public LogHelpers<void> {};
-
 struct TemplLogger : public LoggerBase, public TemplHelpers {};
 
 } // namespace logger
