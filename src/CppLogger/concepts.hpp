@@ -1,15 +1,20 @@
 #pragma once
 
 #include <iostream>
-#include <source_location>
 #include <syncstream>
 #include <utility>
 
 namespace logger {
 template <typename CharT> struct LogContext;
 
+/**
+ * Deduced associated character type of a given context.
+ *
+ * `T` is expected to be at least of type `LogContext`, but it is not checked.
+ */
 template <typename T>
 using LogContextCharType = typename std::remove_cvref_t<T>::CharType;
+
 } // namespace logger
 
 /**
@@ -25,23 +30,36 @@ concept LogContextFrom =
     std::same_as<LogContextCharType<T>, CharT> &&
     requires(T t) { ([](const logger::LogContext<CharT> &) {})(t); };
 
+/**
+ * Convenience for `logger::concepts::LogContextFrom<T,
+ * logger::LogContextCharType<T>>`
+ *
+ * @see LogContextFrom
+ */
 template <typename T>
 concept LogContextLike = LogContextFrom<T, LogContextCharType<T>>;
 
 /**
- * Context type which can be constructed from `std::source_location`.
+ * Context type which can be constructed from a corresponding
+ * `logger::LogContext<CharT>` object.
  */
 template <typename T, typename CharT>
 concept ConstructibleLogContext = LogContextFrom<T, CharT> && requires() {
   T{std::declval<LogContext<CharT>>()};
 };
 
+/**
+ * Convenience for `logger::concepts::ConstructibleLogContext<T,
+ * logger::LogContextCharType<T>>`
+ *
+ * @see ConstructibleLogContext
+ */
 template <typename T>
 concept ConstructibleLogContextLike =
     ConstructibleLogContext<T, LogContextCharType<T>>;
 
 /**
- * Stream which can be used as an argument of type `std::ostream&`.
+ * Stream which can be used as an argument of type `std::basic_ostream<CharT>&`.
  */
 template <typename T, typename CharT>
 concept PrintableStream = !std::is_const_v<T> && requires(T t) {
@@ -49,7 +67,7 @@ concept PrintableStream = !std::is_const_v<T> && requires(T t) {
 };
 
 /**
- * Output device used when writing logs
+ * Output device used when writing logs.
  */
 template <typename T, typename CharT>
 concept LogTarget = requires(T t) { std::basic_osyncstream<CharT>{t}; };
@@ -90,6 +108,9 @@ concept FiltersLog = requires(T t, const logger::LogContext<CharT> &context) {
   { t.filter(context) } noexcept -> std::same_as<bool>;
 };
 
+/**
+ * Logger can write messages with a given context.
+ */
 template <typename T, typename Context>
 concept WritableLogger =
     LogContextLike<Context> &&
