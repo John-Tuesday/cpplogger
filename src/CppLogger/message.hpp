@@ -8,6 +8,18 @@ namespace logger {
 enum class MessageType;
 template <typename CharT, typename...> struct LogFormatString;
 template <typename CharT> struct LogContext;
+template <typename CharT> struct FatalContext;
+template <typename CharT> struct ErrorContext;
+template <typename CharT> struct WarnContext;
+template <typename CharT> struct InfoContext;
+template <typename CharT> struct DebugContext;
+template <typename CharT> struct VerboseContext;
+template <typename T> constexpr bool isFatal(T &&);
+template <typename T> constexpr bool isError(T &&);
+template <typename T> constexpr bool isWarning(T &&);
+template <typename T> constexpr bool isInfo(T &&);
+template <typename T> constexpr bool isDebug(T &&);
+template <typename T> constexpr bool isVerbose(T &&);
 
 /**
  * Base interface for logging context.
@@ -25,28 +37,13 @@ template <typename CharT> struct LogContext;
  */
 template <typename CharT> struct LogContext : public std::source_location {
   using CharType = std::remove_cvref_t<CharT>;
-};
 
-/**
- * LogContext with basic severity levels.
- */
-template <MessageType MType, typename CharT>
-struct MTypeContext : public LogContext<CharT> {};
-
-/** Fundamental log message types. */
-enum class MessageType {
-  /** Most severe. */
-  Fatal,
-  /** Less severe than `Fatal`. */
-  Error,
-  /** Less severe than `Error`. */
-  Warning,
-  /** Less severe than `Warning`. */
-  Info,
-  /** Less severe than `Info`. */
-  Debug,
-  /** Less severe than `Debug`. */
-  Verbose,
+  constexpr static bool isFatal() { return false; }
+  constexpr static bool isError() { return false; }
+  constexpr static bool isWarning() { return false; }
+  constexpr static bool isInfo() { return false; }
+  constexpr static bool isDebug() { return false; }
+  constexpr static bool isVerbose() { return false; }
 };
 
 /** Format string with extra information useful when logging. */
@@ -86,3 +83,89 @@ private:
 };
 
 } // namespace logger
+
+template <typename CharT>
+struct logger::FatalContext : public logger::LogContext<CharT> {
+  constexpr static bool isFatal() { return true; }
+};
+
+template <typename CharT>
+struct logger::ErrorContext : public logger::LogContext<CharT> {
+  constexpr static bool isError() { return true; }
+};
+
+template <typename CharT>
+struct logger::WarnContext : public logger::LogContext<CharT> {
+  constexpr static bool isWarning() { return true; }
+};
+
+template <typename CharT>
+struct logger::InfoContext : public logger::LogContext<CharT> {
+  constexpr static bool isInfo() { return true; }
+};
+
+template <typename CharT>
+struct logger::DebugContext : public logger::LogContext<CharT> {
+  constexpr static bool isDebug() { return true; }
+};
+
+template <typename CharT>
+struct logger::VerboseContext : public logger::LogContext<CharT> {
+  constexpr static bool isVerbose() { return true; }
+};
+
+template <typename T> constexpr bool logger::isFatal(T &&t) {
+  if constexpr (requires() {
+                  { t.isFatal() } -> std::same_as<bool>;
+                }) {
+    return t.isFatal();
+  } else {
+    return false;
+  }
+}
+
+template <typename T> constexpr bool logger::isError(T &&t) {
+  if constexpr (requires() {
+                  { t.isError() } -> std::same_as<bool>;
+                }) {
+    return t.isError();
+  } else {
+    return false;
+  }
+}
+
+template <typename T> constexpr bool logger::isWarning(T &&t) {
+  if constexpr (requires() {
+                  { t.isWarning() } -> std::same_as<bool>;
+                })
+    return t.isWarning();
+  else
+    return false;
+}
+
+template <typename T> constexpr bool logger::isInfo(T &&t) {
+  if constexpr (requires() {
+                  { t.isInfo() } -> std::same_as<bool>;
+                })
+    return t.isInfo();
+  else
+    return false;
+}
+
+template <typename T> constexpr bool logger::isDebug(T &&t) {
+  if constexpr (requires() {
+                  { t.isDebug() } -> std::same_as<bool>;
+                })
+    return t.isDebug();
+  else
+    return false;
+}
+
+template <typename T> constexpr bool logger::isVerbose(T &&t) {
+  if constexpr (requires() {
+                  { t.isVerbose() } -> std::same_as<bool>;
+                })
+    return t.isVerbose();
+  else
+    return false;
+}

@@ -8,10 +8,10 @@
 #include <string_view>
 
 void logger::test::TestFileLog::test() {
-  constexpr auto mtype = logger::MessageType::Info;
+  using Context = logger::InfoContext<char>;
   constexpr std::string_view expect = "info: 5 == 5";
   logger::test::LogTargetsBasicFileLog logger{};
-  logger.log<logger::MTypeContext<mtype, char>>("info: 5 == {}", 5);
+  logger.log<Context>("info: 5 == {}", 5);
   std::ifstream logIn{logger::test::LogTargetsBasicFileLog::logPath()};
   bool noLineRead{true};
   for (std::string line; std::getline(logIn, line, '\n');) {

@@ -170,8 +170,7 @@ void log(LogFormatString<CharT, std::type_identity_t<Args>...> fmt,
 template <typename... Args>
 void logFatal(LogFormatString<char, std::type_identity_t<Args>...> fmt,
               Args &&...args) noexcept {
-  log<MTypeContext<MessageType::Fatal, char>>(std::move(fmt),
-                                              std::forward<Args>(args)...);
+  log<FatalContext<char>>(std::move(fmt), std::forward<Args>(args)...);
 }
 
 /**
@@ -182,8 +181,7 @@ void logFatal(LogFormatString<char, std::type_identity_t<Args>...> fmt,
 template <typename... Args>
 void logError(LogFormatString<char, std::type_identity_t<Args>...> fmt,
               Args &&...args) noexcept {
-  log<MTypeContext<MessageType::Error, char>>(std::move(fmt),
-                                              std::forward<Args>(args)...);
+  log<ErrorContext<char>>(std::move(fmt), std::forward<Args>(args)...);
 }
 
 /**
@@ -194,8 +192,7 @@ void logError(LogFormatString<char, std::type_identity_t<Args>...> fmt,
 template <typename... Args>
 void logWarn(LogFormatString<char, std::type_identity_t<Args>...> fmt,
              Args &&...args) noexcept {
-  log<MTypeContext<MessageType::Warning, char>>(std::move(fmt),
-                                                std::forward<Args>(args)...);
+  log<WarnContext<char>>(std::move(fmt), std::forward<Args>(args)...);
 }
 
 /**
@@ -206,8 +203,7 @@ void logWarn(LogFormatString<char, std::type_identity_t<Args>...> fmt,
 template <typename... Args>
 void logInfo(LogFormatString<char, std::type_identity_t<Args>...> fmt,
              Args &&...args) noexcept {
-  log<MTypeContext<MessageType::Info, char>>(std::move(fmt),
-                                             std::forward<Args>(args)...);
+  log<InfoContext<char>>(std::move(fmt), std::forward<Args>(args)...);
 }
 
 /**
@@ -218,8 +214,7 @@ void logInfo(LogFormatString<char, std::type_identity_t<Args>...> fmt,
 template <typename... Args>
 void logDebug(LogFormatString<char, std::type_identity_t<Args>...> fmt,
               Args &&...args) noexcept {
-  log<MTypeContext<MessageType::Debug, char>>(std::move(fmt),
-                                              std::forward<Args>(args)...);
+  log<DebugContext<char>>(std::move(fmt), std::forward<Args>(args)...);
 }
 
 /**
@@ -230,8 +225,7 @@ void logDebug(LogFormatString<char, std::type_identity_t<Args>...> fmt,
 template <typename... Args>
 void logVerbose(LogFormatString<char, std::type_identity_t<Args>...> fmt,
                 Args &&...args) noexcept {
-  log<MTypeContext<MessageType::Verbose, char>>(std::move(fmt),
-                                                std::forward<Args>(args)...);
+  log<VerboseContext<char>>(std::move(fmt), std::forward<Args>(args)...);
 }
 
 } // namespace logger
