@@ -1,6 +1,6 @@
 #include "TestFileLog.hpp"
 
-#include "tests/Fixtures/DefaultImpl.hpp"
+#include "tests/base/Fixtures/DefaultImpl.hpp"
 
 #include <CppLogger/logger.hpp>
 

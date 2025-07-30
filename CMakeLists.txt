@@ -4,7 +4,7 @@ project(CppLogger VERSION 0.0.0 LANGUAGES CXX)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-add_subdirectory(src/CppLogger)
+add_subdirectory(src)
 add_subdirectory(tests)
 
 find_package(Doxygen)
