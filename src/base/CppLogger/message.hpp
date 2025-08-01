@@ -5,7 +5,6 @@
 
 namespace logger {
 
-enum class MessageType;
 template <typename CharT, typename...> struct LogFormatString;
 template <typename CharT> struct LogContext;
 template <typename CharT> struct FatalContext;

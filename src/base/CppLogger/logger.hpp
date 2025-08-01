@@ -162,7 +162,10 @@ void log(LogFormatString<CharT, std::type_identity_t<Args>...> fmt,
 }
 
 /**
- * Log using defaults for `MessageType::Fatal`.
+ * Log using its corresponding context class.
+ *
+ * @see log<>(LogFormatString<CharT, std::type_identity_t<Args>...> , Args
+ * &&...)
  *
  * @param[in] fmt format string input
  * @param[in] args variables to formated
@@ -174,9 +177,7 @@ void logFatal(LogFormatString<char, std::type_identity_t<Args>...> fmt,
 }
 
 /**
- * Log using defaults for `MessageType::Error`.
- *
- * @copydetails logFatal()
+ * @copydoc logFatal()
  */
 template <typename... Args>
 void logError(LogFormatString<char, std::type_identity_t<Args>...> fmt,
@@ -185,9 +186,7 @@ void logError(LogFormatString<char, std::type_identity_t<Args>...> fmt,
 }
 
 /**
- * Log using defaults for `MessageType::Warning`.
- *
- * @copydetails logFatal()
+ * @copydoc logFatal()
  */
 template <typename... Args>
 void logWarn(LogFormatString<char, std::type_identity_t<Args>...> fmt,
@@ -196,9 +195,7 @@ void logWarn(LogFormatString<char, std::type_identity_t<Args>...> fmt,
 }
 
 /**
- * Log using defaults for `MessageType::Info`.
- *
- * @copydetails logFatal()
+ * @copydoc logFatal()
  */
 template <typename... Args>
 void logInfo(LogFormatString<char, std::type_identity_t<Args>...> fmt,
@@ -207,9 +204,7 @@ void logInfo(LogFormatString<char, std::type_identity_t<Args>...> fmt,
 }
 
 /**
- * Log using defaults for `MessageType::Debug`.
- *
- * @copydetails logFatal()
+ * @copydoc logFatal()
  */
 template <typename... Args>
 void logDebug(LogFormatString<char, std::type_identity_t<Args>...> fmt,
@@ -218,9 +213,7 @@ void logDebug(LogFormatString<char, std::type_identity_t<Args>...> fmt,
 }
 
 /**
- * Log using defaults for `MessageType::Verbose`.
- *
- * @copydetails logFatal()
+ * @copydoc logFatal()
  */
 template <typename... Args>
 void logVerbose(LogFormatString<char, std::type_identity_t<Args>...> fmt,
