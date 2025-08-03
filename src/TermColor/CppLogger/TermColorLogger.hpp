@@ -16,7 +16,7 @@
 
 namespace logger {
 
-struct TermColorLogger : public LoggerDefaults<logger::DefaultImplTag> {
+struct TermColorLogger : public LoggerDefaults<TermColorLogger> {
   template <logger::concepts::LogContextLike Context>
   constexpr std::string_view getColors(Context &&context) {
     if constexpr (logger::isFatal(context) || logger::isError(context)) {
