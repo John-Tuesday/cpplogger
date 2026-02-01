@@ -5,7 +5,7 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 include(FetchContent)
 
-add_subdirectory(src)
+add_subdirectory(cpplogger)
 add_subdirectory(tests)
 
 find_package(Doxygen)
