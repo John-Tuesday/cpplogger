@@ -5,20 +5,6 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 include(FetchContent)
 
-option(cpplogger_fetch_term_color
-    "Fetch TermColor package if it cannot be found"
-    ON
-)
-if (NOT TARGET TermColor::TermColor AND "${cpplogger_fetch_term_color}")
-    FetchContent_Declare(
-        TuesdayTermColor
-        GIT_REPOSITORY "https://github.com/John-Tuesday/term-color.git"
-        GIT_TAG 5c1e0fdc8172ac817097bb65cf99f6c4b0c7b34b
-        OVERRIDE_FIND_PACKAGE
-    )
-    find_package(TuesdayTermColor)
-endif ()
-
 add_subdirectory(src)
 add_subdirectory(tests)
 
