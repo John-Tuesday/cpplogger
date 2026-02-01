@@ -1,4 +1,4 @@
-#include <CppLogger/logger.hpp>
+#include <cpplogger/logger.hpp>
 
 #include <cassert>
 #include <print>

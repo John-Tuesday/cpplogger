@@ -2,7 +2,7 @@
 
 #include "tests/base/Fixtures/DefaultImpl.hpp"
 
-#include <CppLogger/logger.hpp>
+#include <cpplogger/logger.hpp>
 
 #include <cassert>
 #include <string_view>
