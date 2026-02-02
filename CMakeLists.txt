@@ -1,12 +1,23 @@
 cmake_minimum_required(VERSION 3.30)
 project(CppLogger VERSION 0.0.0 LANGUAGES CXX)
 
+set(cpplogger_enable_tests_default OFF)
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" AND "${PROJECT_IS_TOP_LEVEL}")
+  set(cpplogger_enable_tests_default ON)
+endif()
+option(cpplogger_enable_tests "Enable testing targets" "${cpplogger_enable_tests_default}")
+
+
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 include(FetchContent)
 
 add_subdirectory(cpplogger)
-add_subdirectory(tests)
+
+if("${cpplogger_enable_tests}")
+  enable_testing()
+  add_subdirectory(tests)
+endif()
 
 find_package(Doxygen)
 if(${DOXYGEN_FOUND})
