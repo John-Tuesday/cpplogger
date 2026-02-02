@@ -7,7 +7,7 @@ namespace test {
 
 void testBasic();
 
-} // namespace test
+}  // namespace test
 
 int main() {
   std::println("Start main()\n");

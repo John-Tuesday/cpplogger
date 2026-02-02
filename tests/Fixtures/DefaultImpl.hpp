@@ -11,17 +11,19 @@ namespace logger::test {
 
 struct DoubleCerrLogger : public logger::LoggerDefaults<void> {
   template <logger::concepts::LogContextFrom<char> Context>
-  auto targets(const Context &) noexcept
+  auto targets(const Context&) noexcept
       -> logger::concepts::TupleLikeOfLogTargets<
           LogContextCharType<Context>> decltype(auto) {
     return std::tuple(std::ref(std::cerr), std::ref(std::cerr));
   }
 };
 
-template <typename... Ts> struct ChainLogger : public LoggerBase {
+template <typename... Ts>
+struct ChainLogger : public LoggerBase {
   template <concepts::LogContextLike Context>
-  void write(Context &&context,
-             std::basic_string_view<LogContextCharType<Context>> message) {
+  void write(
+      Context&& context,
+      std::basic_string_view<LogContextCharType<Context>> message) {
     (Ts{}.write(context, message), ...);
   }
 };
@@ -29,7 +31,7 @@ template <typename... Ts> struct ChainLogger : public LoggerBase {
 struct LogTargetsBasicFileLog : public logger::LoggerDefaults<void> {
 
   template <logger::concepts::LogContextLike Context>
-  auto targets(const Context &location) const noexcept
+  auto targets(const Context& location) const noexcept
       -> logger::concepts::TupleLikeOfLogTargets<
           LogContextCharType<Context>> decltype(auto) {
     return std::tuple(std::ref(std::clog), std::ofstream{logPath()});
@@ -46,4 +48,4 @@ inline std::filesystem::path LogTargetsBasicFileLog::logPath() {
   return path / "test.log";
 }
 
-} // namespace logger::test
+}  // namespace logger::test

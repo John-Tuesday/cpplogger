@@ -20,4 +20,4 @@ inline std::filesystem::path tempDir() {
   return path;
 }
 
-} // namespace logger::test
+}  // namespace logger::test

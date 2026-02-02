@@ -5,7 +5,9 @@
 #include <utility>
 
 namespace logger {
-template <typename CharT> struct LogContext;
+
+template <typename CharT>
+struct LogContext;
 
 /**
  * Deduced associated character type of a given context.
@@ -15,7 +17,7 @@ template <typename CharT> struct LogContext;
 template <typename T>
 using LogContextCharType = typename std::remove_cvref_t<T>::CharType;
 
-} // namespace logger
+}  // namespace logger
 
 /**
  * @brief Constraints for logging helper classes.
@@ -28,7 +30,7 @@ namespace logger::concepts {
 template <typename T, typename CharT>
 concept LogContextFrom =
     std::same_as<LogContextCharType<T>, CharT> &&
-    requires(T t) { ([](const logger::LogContext<CharT> &) {})(t); };
+    requires(T t) { ([](const logger::LogContext<CharT>&) {})(t); };
 
 /**
  * Convenience for `logger::concepts::LogContextFrom<T,
@@ -63,7 +65,7 @@ concept ConstructibleLogContextLike =
  */
 template <typename T, typename CharT>
 concept PrintableStream = !std::is_const_v<T> && requires(T t) {
-  std::declval<void(std::basic_ostream<CharT> &)>()(t);
+  std::declval<void(std::basic_ostream<CharT>&)>()(t);
 };
 
 /**
@@ -77,7 +79,7 @@ concept LogTarget = requires(T t) { std::basic_osyncstream<CharT>{t}; };
  */
 template <typename T, typename CharT>
 concept TupleLikeOfLogTargets = requires {
-  std::apply([]<LogTarget<CharT>... Args>(Args &&...) {}, std::declval<T>());
+  std::apply([]<LogTarget<CharT>... Args>(Args&&...) {}, std::declval<T>());
 };
 
 /**
@@ -85,7 +87,7 @@ concept TupleLikeOfLogTargets = requires {
  */
 template <typename T, typename CharT>
 concept ProvidesLogOutputTargets =
-    requires(T t, const logger::LogContext<CharT> &context) {
+    requires(T t, const logger::LogContext<CharT>& context) {
       { t.targets(context) } -> logger::concepts::TupleLikeOfLogTargets<CharT>;
     };
 ;
@@ -94,9 +96,11 @@ concept ProvidesLogOutputTargets =
  * Provides a function to print a log messages.
  */
 template <typename T, typename CharT>
-concept PrintsToLog = requires(T t, std::basic_ostream<CharT> stream,
-                               const logger::LogContext<CharT> &context,
-                               std::basic_string_view<CharT> message) {
+concept PrintsToLog = requires(
+    T t,
+    std::basic_ostream<CharT> stream,
+    const logger::LogContext<CharT>& context,
+    std::basic_string_view<CharT> message) {
   { t.print(stream, context, message) };
 };
 
@@ -104,7 +108,7 @@ concept PrintsToLog = requires(T t, std::basic_ostream<CharT> stream,
  * Meets the requirements of a log filter.
  */
 template <typename T, typename CharT>
-concept FiltersLog = requires(T t, const logger::LogContext<CharT> &context) {
+concept FiltersLog = requires(T t, const logger::LogContext<CharT>& context) {
   { t.filter(context) } noexcept -> std::same_as<bool>;
 };
 
@@ -115,9 +119,10 @@ template <typename T, typename Context>
 concept WritableLogger =
     LogContextLike<Context> &&
     requires(
-        T t, Context &&c,
+        T t,
+        Context&& c,
         std::basic_string_view<logger::LogContextCharType<Context>> message) {
       t.write(std::forward<Context>(c), message);
     };
 
-} // namespace logger::concepts
+}  // namespace logger::concepts

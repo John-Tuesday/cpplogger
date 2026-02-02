@@ -8,4 +8,4 @@ struct TestFileLog {
   void test();
 };
 
-} // namespace logger::test
+}  // namespace logger::test

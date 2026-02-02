@@ -1,18 +1,18 @@
 add_executable(cpplogger_clitest)
 
 target_sources(cpplogger_clitest
-    PRIVATE
-        clitest.cpp
+  PRIVATE
+    clitest.cpp
 )
 
 target_compile_features(cpplogger_clitest
-    PUBLIC
-        cxx_std_23
+  PUBLIC
+    cxx_std_23
 )
 
 target_link_libraries(cpplogger_clitest
-    PRIVATE
-        CppLogger::HeaderOnly
+  PRIVATE
+    CppLogger::HeaderOnly
 )
 
 add_custom_target(run_cpplogger_clitest COMMAND cpplogger_clitest)

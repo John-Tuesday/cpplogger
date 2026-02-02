@@ -27,7 +27,9 @@ void logger::test::TestFileLog::test() {
   assert(!noLineRead);
 }
 
-void logger::test::testFileLog() { TestFileLog{}.test(); }
+void logger::test::testFileLog() {
+  TestFileLog{}.test();
+}
 
 int main() {
   logger::test::testFileLog();

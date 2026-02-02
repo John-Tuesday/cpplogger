@@ -11,7 +11,7 @@ bool verifyLoggerCls() {
   return true;
 }
 
-} // namespace logger::test
+}  // namespace logger::test
 
 namespace test::ctx {
 
@@ -22,7 +22,7 @@ concept LogHelper = (sizeof...(CharTs) >= 1) &&
                       logger::concepts::PrintsToLog<T, CharTs>) &&
                      ...);
 
-} // namespace test::ctx
+}  // namespace test::ctx
 
 int main() {
   std::println("\nBegin: {}\n", "sanedefaults");
