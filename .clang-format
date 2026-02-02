@@ -1,0 +1,21 @@
+---
+Language: Cpp
+BasedOnStyle: Chromium
+#
+#   for clang-format 22 (current: 21)
+#
+# AlignAfterOpenBracket: true
+# BreakAfterOpenBracketFunction: true
+# BreakBeforeCloseBracketFunction: true
+# 
+#   Workaround:
+#
+AlignAfterOpenBracket: AlwaysBreak
+
+AllowAllArgumentsOnNextLine: false
+BinPackArguments: false
+KeepEmptyLines:
+  AtStartOfBlock: true
+PenaltyReturnTypeOnItsOwnLine: 60
+WrapNamespaceBodyWithEmptyLines: Always
+
