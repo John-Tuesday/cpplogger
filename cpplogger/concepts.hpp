@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef CPPLOGGER_CONCEPTS_HPP
+#define CPPLOGGER_CONCEPTS_HPP
+
 #include <iostream>
 #include <syncstream>
 #include <utility>
@@ -126,3 +129,5 @@ concept WritableLogger =
     };
 
 }  // namespace logger::concepts
+
+#endif

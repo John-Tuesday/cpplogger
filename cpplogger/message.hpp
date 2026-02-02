@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef CPPLOGGER_MESSAGE_HPP
+#define CPPLOGGER_MESSAGE_HPP
+
 #include <format>
 #include <source_location>
 
@@ -190,3 +193,5 @@ constexpr bool logger::isVerbose(T&& t) {
   else
     return false;
 }
+
+#endif

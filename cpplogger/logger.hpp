@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef CPPLOGGER_LOGGER_HPP
+#define CPPLOGGER_LOGGER_HPP
+
 #include "cpplogger/concepts.hpp"
 #include "cpplogger/message.hpp"
 
@@ -256,3 +259,5 @@ void logVerbose(
 }
 
 }  // namespace logger
+
+#endif
