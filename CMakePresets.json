@@ -2,7 +2,8 @@
   "version": 8,
   "configurePresets": [
     {
-      "name": "default",
+      "name": "default-debug",
+      "description": "Default configuration for general purpose testing and debuging",
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
@@ -11,8 +12,9 @@
   ],
   "buildPresets": [
     {
-      "name": "default",
-      "configurePreset": "default"
+      "name": "default-debug",
+      "description": "Default debug build (builds ALL including tests)",
+      "configurePreset": "default-debug"
     }
   ]
 }
