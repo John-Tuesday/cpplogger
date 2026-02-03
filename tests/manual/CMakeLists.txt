@@ -18,5 +18,3 @@ target_link_libraries(cpplogger_clitest
 add_custom_target(run_cpplogger_clitest COMMAND cpplogger_clitest)
 add_dependencies(run_cpplogger_clitest cpplogger_clitest)
 
-add_test(NAME manual_test COMMAND cpplogger_clitest)
-

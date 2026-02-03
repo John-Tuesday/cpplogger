@@ -1,40 +1,36 @@
 add_subdirectory(Fixtures)
 add_subdirectory(manual)
 
-add_executable(cpplogger_sane_defaults_test)
-target_sources(cpplogger_sane_defaults_test
+add_executable(cpplogger_sane_defaults)
+target_sources(cpplogger_sane_defaults
   PRIVATE
     sanedefaults.cpp
 )
-target_link_libraries(cpplogger_sane_defaults_test
+target_link_libraries(cpplogger_sane_defaults
   PRIVATE
     CppLogger::HeaderOnly
     CppLoggerTest::DefaultFixtures
 )
-add_custom_target(run_cpplogger_sane_defaults COMMAND cpplogger_sane_defaults_test)
-add_dependencies(run_cpplogger_sane_defaults cpplogger_sane_defaults_test)
 
-add_executable(cpplogger_test_file_log)
-target_sources(cpplogger_test_file_log
+add_test(NAME cpplogger_sane_defaults_test
+  COMMAND cpplogger_sane_defaults
+)
+
+add_executable(cpplogger_log_to_file)
+target_sources(cpplogger_log_to_file
   PUBLIC FILE_SET HEADERS
   FILES
     TestFileLog.hpp
   PRIVATE
     TestFileLog.cpp
 )
-target_link_libraries(cpplogger_test_file_log
+target_link_libraries(cpplogger_log_to_file
   PRIVATE
     CppLogger::HeaderOnly
     CppLoggerTest::DefaultFixtures
 )
 
-add_custom_target(run_cpplogger_auto_tests
-  COMMAND
-    cpplogger_sane_defaults_test
-    cpplogger_test_file_log
-)
-add_dependencies(run_cpplogger_auto_tests
-  cpplogger_sane_defaults_test
-  cpplogger_test_file_log
+add_test(NAME cpplogger_log_to_file_test
+  COMMAND cpplogger_log_to_file
 )
 
