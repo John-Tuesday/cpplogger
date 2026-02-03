@@ -1,23 +1,39 @@
 #pragma once
 
-#include <cassert>
+#ifndef TESTS_FIXTURES_TEMPFILES_HPP
+#define TESTS_FIXTURES_TEMPFILES_HPP
+
+#include <expected>
 #include <filesystem>
-#include <iostream>
-#include <print>
+#include <string_view>
 
 namespace logger::test {
 
-inline std::filesystem::path tempDir() {
+inline constexpr std::string_view tempDirectoryName = "CppLogger";
+
+/**
+ * Return the temperary directory for use by tests.
+ *
+ * If the directory does not exist, it will be created.
+ *
+ * @return the directory path or the coresponding `std::error_code`.
+ */
+static std::expected<std::filesystem::path, std::error_code> tempDirectory();
+
+}  // namespace logger::test
+
+std::expected<std::filesystem::path, std::error_code>
+logger::test::tempDirectory() {
   std::error_code ec{};
-  std::filesystem::path path =
-      std::filesystem::temp_directory_path(ec) / "CppLogger";
-  if (ec) {
-    std::println(std::clog, "Error creating temp dir: '{}'", ec.message());
-    assert(!ec);
-    return std::filesystem::path{};
-  }
-  assert(!ec);
+  std::filesystem::path path = std::filesystem::temp_directory_path(ec) /
+                               logger::test::tempDirectoryName;
+  if (ec)
+    return std::unexpected{ec};
+  ec.clear();
+  std::filesystem::create_directory(path, ec);
+  if (ec)
+    return std::unexpected{ec};
   return path;
 }
 
-}  // namespace logger::test
+#endif
