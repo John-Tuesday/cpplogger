@@ -18,9 +18,6 @@ add_test(NAME cpplogger_sane_defaults_test
 
 add_executable(cpplogger_log_to_file)
 target_sources(cpplogger_log_to_file
-  PUBLIC FILE_SET HEADERS
-  FILES
-    TestFileLog.hpp
   PRIVATE
     TestFileLog.cpp
 )
