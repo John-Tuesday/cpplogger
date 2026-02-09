@@ -1,6 +1,19 @@
 add_subdirectory(Fixtures)
 add_subdirectory(manual)
 
+add_executable(cpplogger_logger_unit_test)
+target_sources(cpplogger_logger_unit_test
+  PRIVATE
+    logger_unit_test.cpp
+)
+target_link_libraries(cpplogger_logger_unit_test
+  PRIVATE
+    CppLogger::HeaderOnly
+)
+add_test(NAME "CppLogger: Logger [Unit Test]"
+  COMMAND cpplogger_logger_unit_test
+)
+
 add_executable(cpplogger_sane_defaults)
 target_sources(cpplogger_sane_defaults
   PRIVATE
