@@ -19,7 +19,32 @@ struct VerboseContext;
 
 }  // namespace cpplogger
 
-struct cpplogger::LogContext : public std::source_location {};
+/**
+ * @brief Root class which provides context to logging functions.
+ */
+struct cpplogger::LogContext : public std::source_location {
+  /**
+   * @brief Default initialization, follows `std::source_location` default
+   * initialization.
+   */
+  constexpr LogContext() noexcept : std::source_location{} {}
+
+  /**
+   * @note Although this function has been marked `constexpr`, the standard does
+   * not specifiy if the `std::source_location` is `constexpr` or not.
+   * @note This function not `noexcept` because neither is the copy constructor
+   * of `std::source_location`.
+   */
+  constexpr LogContext(const std::source_location& location)
+      : std::source_location{location} {}
+
+  /**
+   * @note Although this function has been marked `constexpr`, the standard does
+   * not specifiy if the `std::source_location` is `constexpr` or not.
+   */
+  constexpr LogContext(std::source_location&& location) noexcept
+      : std::source_location{std::move(location)} {}
+};
 
 struct cpplogger::FatalContext : public cpplogger::LogContext {};
 
