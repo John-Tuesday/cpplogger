@@ -7,7 +7,7 @@
 #include <filesystem>
 #include <string_view>
 
-namespace logger::test {
+namespace cpplogger::test {
 
 inline constexpr std::string_view tempDirectoryName = "CppLogger";
 
@@ -20,13 +20,13 @@ inline constexpr std::string_view tempDirectoryName = "CppLogger";
  */
 static std::expected<std::filesystem::path, std::error_code> tempDirectory();
 
-}  // namespace logger::test
+}  // namespace cpplogger::test
 
 std::expected<std::filesystem::path, std::error_code>
-logger::test::tempDirectory() {
+cpplogger::test::tempDirectory() {
   std::error_code ec{};
   std::filesystem::path path = std::filesystem::temp_directory_path(ec) /
-                               logger::test::tempDirectoryName;
+                               cpplogger::test::tempDirectoryName;
   if (ec)
     return std::unexpected{ec};
   ec.clear();

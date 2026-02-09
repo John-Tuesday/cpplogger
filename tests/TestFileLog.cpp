@@ -1,28 +1,41 @@
 #include "Fixtures/tempfiles.hpp"
 
 #include <cpplogger/logger.hpp>
+#include <cpplogger/message.hpp>
 
 #include <cassert>
 #include <fstream>
+#include <print>
 #include <source_location>
 #include <sstream>
 #include <string_view>
-#include <tuple>
 
-namespace logger::test {
+namespace cpplogger::test {
 
 class LogTargetsBasicFileLog;
 
-class LogTargetsBasicFileLog : public logger::LoggerDefaults<void> {
+class LogTargetsBasicFileLog : public cpplogger::Logger<char> {
 
  public:
   LogTargetsBasicFileLog();
 
-  template <logger::concepts::LogContextLike Context>
-  auto targets(const Context& location) const noexcept
-      -> logger::concepts::TupleLikeOfLogTargets<
-          LogContextCharType<Context>> decltype(auto) {
-    return std::tuple(std::ref(std::cerr), getLogStream());
+  template <typename Context, typename... Args>
+  void
+  log(Context&& context,
+      std::format_string<std::type_identity_t<Args>...> fmt,
+      Args&&... args) {
+    std::ofstream logStream = getLogStream();
+    std::ostreambuf_iterator fout{logStream};
+    formatTo(
+        fout,
+        std::forward<Context>(context),
+        fmt,
+        std::forward<Args>(args)...);
+    formatTo(
+        std::ostreambuf_iterator{std::cerr},
+        std::forward<Context>(context),
+        fmt,
+        std::forward<Args>(args)...);
   }
 
   constexpr std::string_view getLogFileName() const {
@@ -45,19 +58,19 @@ class LogTargetsBasicFileLog : public logger::LoggerDefaults<void> {
 
 bool testFileLog(std::string_view input);
 
-}  // namespace logger::test
+}  // namespace cpplogger::test
 
 int main() {
-  if (!logger::test::testFileLog("info: 5 == 5"))
+  if (!cpplogger::test::testFileLog("info: 5 == 5"))
     return 1;
   return 0;
 }
 
-logger::test::LogTargetsBasicFileLog::LogTargetsBasicFileLog() {
-  m_logPath = *logger::test::tempDirectory() / getLogFileName();
+cpplogger::test::LogTargetsBasicFileLog::LogTargetsBasicFileLog() {
+  m_logPath = *cpplogger::test::tempDirectory() / getLogFileName();
 }
 
-std::ofstream logger::test::LogTargetsBasicFileLog::getLogStream() const {
+std::ofstream cpplogger::test::LogTargetsBasicFileLog::getLogStream() const {
   return std::ofstream{getLogPath(), std::ios_base::out | std::ios_base::trunc};
 }
 
@@ -68,13 +81,13 @@ std::ofstream logger::test::LogTargetsBasicFileLog::getLogStream() const {
  * TODO: Communicate when failure is due to file access, like log file is cannot
  * be written to.
  */
-bool logger::test::testFileLog(std::string_view input) {
-  using Context = logger::InfoContext<char>;
-  logger::test::LogTargetsBasicFileLog logger{};
+bool cpplogger::test::testFileLog(std::string_view input) {
+  using Context = cpplogger::InfoContext;
+  cpplogger::test::LogTargetsBasicFileLog logger{};
   std::stringstream captured{};
   Context context{std::source_location::current()};
-  logger.print(captured, context, input);
-  logger.write(context, input);
+  logger.formatTo(std::ostreambuf_iterator{captured}, context, "{}", input);
+  logger.log(context, "{}", input);
   std::string_view expect = captured.view();
   std::ifstream logIn{logger.getLogPath()};
   logIn.sync();

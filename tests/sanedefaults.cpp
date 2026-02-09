@@ -2,27 +2,19 @@
 #include <cpplogger/logger.hpp>
 #include <cpplogger/message.hpp>
 
+#include <print>
+
 namespace logger::test {
 
 bool verifyLoggerCls() {
-  logger::LoggerDefaults<logger::DefaultImplTag> logger{};
-  using Context = logger::LogContext<char>;
-  logger.log<Context>("test output and the number ten {}", 10);
+  cpplogger::DefaultLogger<cpplogger::DefaultTag>::Logger<char> logger{};
+  using Context = cpplogger::LogContext;
+  Context context = {std::source_location::current()};
+  logger.log(context, "test output and the number ten {}", 10);
   return true;
 }
 
 }  // namespace logger::test
-
-namespace test::ctx {
-
-template <typename T, typename... CharTs>
-concept LogHelper = (sizeof...(CharTs) >= 1) &&
-                    ((logger::concepts::ProvidesLogOutputTargets<T, CharTs> &&
-                      logger::concepts::FiltersLog<T, CharTs> &&
-                      logger::concepts::PrintsToLog<T, CharTs>) &&
-                     ...);
-
-}  // namespace test::ctx
 
 int main() {
   std::println("\nBegin: {}\n", "sanedefaults");

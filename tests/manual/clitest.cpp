@@ -1,4 +1,4 @@
-#include <cpplogger/logger.hpp>
+#include <cpplogger/log.hpp>
 
 #include <cassert>
 #include <print>
@@ -18,5 +18,5 @@ int main() {
 
 void test::testBasic() {
   constexpr std::string_view expect = "str fmt[10]";
-  logger::logWarn("str fmt [{}]", 10);
+  cpplogger::logWarn("str fmt [{}]", 10);
 }
