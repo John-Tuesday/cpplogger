@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.30)
-project(CppLogger VERSION 0.0.0 LANGUAGES CXX)
+project(CppLogger
+  VERSION 0.0.0
+  LANGUAGES CXX
+)
 
 set(cpplogger_enable_tests_default OFF)
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" AND "${PROJECT_IS_TOP_LEVEL}")
