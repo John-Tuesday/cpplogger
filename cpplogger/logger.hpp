@@ -5,6 +5,8 @@
 #include <iostream>
 #include <iterator>
 #include <source_location>
+#include <type_traits>
+#include <utility>
 
 namespace cpplogger {
 
@@ -37,9 +39,6 @@ struct cpplogger::DefaultLogger {
 /**
  * @brief Base logger implementation with "compile-time polymorphism" for easier
  * subclassing.
- *
- * @todo Unify references to underlying character type using function template
- * parameters or a member type.
  */
 template <typename C = char>
 class cpplogger::Logger {
@@ -54,15 +53,15 @@ class cpplogger::Logger {
    *
    * @see `std::format_to()`
    *
-   * @todo Add default implementation for `wchar`.
-   *
    * @todo Better default formatting of context.
    *
    * @return iterator past-the-end.
    */
   template <typename Out, typename Context, typename Self, typename... Args>
     requires std::output_iterator<Out, const CharType&> &&
-             std::convertible_to<Context, const std::source_location&>
+             std::convertible_to<Context, const std::source_location&> &&
+             std::
+                 same_as<CharType, typename std::remove_cvref_t<Self>::CharType>
   Out formatTo(
       this Self&& self,
       Out out,
@@ -70,6 +69,9 @@ class cpplogger::Logger {
       std::basic_format_string<CharType, std::type_identity_t<Args>...> fmt,
       Args&&... args) {
     const std::source_location& loc = context;
+    static_assert(
+        std::output_iterator<Out, const char&>,
+        "extra formatting is not supported Cannot");
     auto it = std::format_to(std::forward<Out>(out), "{}", loc.file_name());
     it = std::format_to(it, fmt, std::forward<Args>(args)...);
     return it;
@@ -81,13 +83,23 @@ class cpplogger::Logger {
    * @todo Add default implementation for `wchar`.
    */
   template <typename Context, typename Self, typename... Args>
-  void
-  log(this Self&& self,
-      Context&& context,
-      std::basic_format_string<CharType, std::type_identity_t<Args>...> fmt,
-      Args&&... args) {
+    requires std::
+        same_as<CharType, typename std::remove_cvref_t<Self>::CharType>
+      void
+      log(this Self&& self,
+          Context&& context,
+          std::basic_format_string<CharType, std::type_identity_t<Args>...> fmt,
+          Args&&... args) {
+    std::ostreambuf_iterator<CharType> out;
+    if constexpr (std::same_as<char, CharType>) {
+      out = std::cerr;
+    } else if constexpr (std::same_as<wchar_t, CharType>) {
+      out = std::wcerr;
+    } else {
+      std::unreachable();
+    }
     std::forward<Self>(self).formatTo(
-        std::ostreambuf_iterator(std::cerr),
+        out,
         std::forward<Context>(context),
         fmt,
         std::forward<Args>(args)...);
