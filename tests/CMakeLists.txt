@@ -1,5 +1,4 @@
 add_subdirectory(fixtures)
-add_subdirectory(manual)
 
 add_executable(cpplogger_logger_unit_test)
 target_sources(cpplogger_logger_unit_test
@@ -28,4 +27,7 @@ target_link_libraries(cpplogger_log_to_file
 add_test(NAME cpplogger_log_to_file_test
   COMMAND cpplogger_log_to_file
 )
+
+add_subdirectory(manual)
+add_subdirectory(samples)
 
