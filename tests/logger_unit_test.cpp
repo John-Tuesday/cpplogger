@@ -1,5 +1,5 @@
+#include <cpplogger/context.hpp>
 #include <cpplogger/logger.hpp>
-#include <cpplogger/message.hpp>
 
 #include <expected>
 #include <iostream>

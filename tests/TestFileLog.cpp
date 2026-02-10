@@ -1,7 +1,7 @@
 #include "fixtures/tempfiles.hpp"
 
+#include <cpplogger/context.hpp>
 #include <cpplogger/logger.hpp>
-#include <cpplogger/message.hpp>
 
 #include <cassert>
 #include <fstream>

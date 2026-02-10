@@ -1,7 +1,5 @@
-#pragma once
-
-#ifndef CPPLOGGER_MESSAGE_HPP
-#define CPPLOGGER_MESSAGE_HPP
+#ifndef CPPLOGGER_CONTEXT_HPP
+#define CPPLOGGER_CONTEXT_HPP
 
 #include <concepts>
 #include <format>

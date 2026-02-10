@@ -10,7 +10,7 @@ target_sources(cpplogger_header_only
     concepts.hpp
     log.hpp
     logger.hpp
-    message.hpp
+    context.hpp
 )
 
 target_compile_features(cpplogger_header_only

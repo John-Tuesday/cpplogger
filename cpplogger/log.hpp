@@ -3,8 +3,8 @@
 
 #include <format>
 
+#include "context.hpp"
 #include "logger.hpp"
-#include "message.hpp"
 
 namespace cpplogger {
 
