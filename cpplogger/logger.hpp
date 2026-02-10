@@ -84,8 +84,6 @@ class cpplogger::Logger {
 
   /**
    * @brief Format and write a log message to all output targets.
-   *
-   * @todo Add default implementation for `wchar`.
    */
   template <
       cpplogger::ReadableLogContext Context,
