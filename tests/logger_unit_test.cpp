@@ -12,6 +12,12 @@ std::expected<void, std::string> testFormatTo();
 
 std::expected<void, std::wstring> testWideFormatTo();
 
+template <cpplogger::ReadableLogContext Context>
+std::expected<void, std::string> testLog(Context&&);
+
+template <cpplogger::ReadableLogContext Context>
+std::expected<void, std::wstring> testWideLog(Context&&);
+
 }  // namespace cpplogger::test
 
 int main() {
@@ -23,6 +29,21 @@ int main() {
     std::format_to(
         std::ostreambuf_iterator{std::wcerr},
         L"Failed!\n{}",
+        result.error());
+    return 1;
+  }
+  cpplogger::LogContext context{std::source_location::current()};
+  if (std::expected result = cpplogger::test::testLog(context); !result) {
+    std::format_to(
+        std::ostreambuf_iterator{std::wcerr},
+        "Failed!\n{}\n",
+        result.error());
+    return 1;
+  }
+  if (std::expected result = cpplogger::test::testWideLog(context); !result) {
+    std::format_to(
+        std::ostreambuf_iterator{std::wcerr},
+        L"Failed!\n{}\n",
         result.error());
     return 1;
   }
@@ -75,4 +96,53 @@ std::expected<void, std::wstring> cpplogger::test::testWideFormatTo() {
       L"actual: '{}'",
       expect,
       capture.view())};
+}
+
+template <cpplogger::ReadableLogContext Context>
+std::expected<void, std::string> cpplogger::test::testLog(Context&& context) {
+  cpplogger::Logger<char> logger{};
+  std::stringstream expectStream{};
+  logger.formatTo(
+      std::ostreambuf_iterator{expectStream},
+      context,
+      "test log\n");
+  std::string_view expect = expectStream.view();
+  std::stringbuf capture{};
+  auto* old = std::cerr.rdbuf(&capture);
+  logger.log(context, "test log");
+  std::cerr.rdbuf(old);
+  std::string_view actual = capture.view();
+  if (expect == actual) {
+    return {};
+  }
+  return std::unexpected{std::format(
+      "expect: '{}'\n"
+      "actual: '{}'\n",
+      expect,
+      actual)};
+}
+
+template <cpplogger::ReadableLogContext Context>
+std::expected<void, std::wstring>
+cpplogger::test::testWideLog(Context&& context) {
+  cpplogger::Logger<wchar_t> logger{};
+  std::wstringstream expectStream{};
+  logger.formatTo(
+      std::ostreambuf_iterator{expectStream},
+      context,
+      L"test log\n");
+  const std::wstring_view expect = expectStream.view();
+  std::wstringbuf capture{};
+  auto* old = std::wcerr.rdbuf(&capture);
+  logger.log(context, L"test log");
+  std::wcerr.rdbuf(old);
+  std::wstring_view actual = capture.view();
+  if (expect == actual) {
+    return {};
+  }
+  return std::unexpected{std::format(
+      L"expect: '{}'\n"
+      L"actual: '{}'\n",
+      expect,
+      actual)};
 }
