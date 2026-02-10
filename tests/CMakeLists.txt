@@ -1,4 +1,4 @@
-add_subdirectory(Fixtures)
+add_subdirectory(fixtures)
 add_subdirectory(manual)
 
 add_executable(cpplogger_logger_unit_test)
