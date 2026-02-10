@@ -83,7 +83,8 @@ class cpplogger::Logger {
   }
 
   /**
-   * @brief Format and write a log message to all output targets.
+   * @brief Format and write a log message to all output targets and appends a
+   * new line.
    */
   template <
       cpplogger::ReadableLogContext Context,
@@ -104,11 +105,12 @@ class cpplogger::Logger {
     } else {
       std::unreachable();
     }
-    std::forward<Self>(self).formatTo(
+    out = std::forward<Self>(self).formatTo(
         out,
         std::forward<Context>(context),
         fmt,
         std::forward<Args>(args)...);
+    out = std::format_to(out, "\n");
   }
 };
 
