@@ -1,6 +1,8 @@
 #ifndef CPPLOGGER_LOGGER_HPP
 #define CPPLOGGER_LOGGER_HPP
 
+#include "concepts.hpp"
+
 #include <format>
 #include <iostream>
 #include <iterator>
@@ -57,9 +59,12 @@ class cpplogger::Logger {
    *
    * @return iterator past-the-end.
    */
-  template <typename Out, typename Context, typename Self, typename... Args>
+  template <
+      typename Out,
+      cpplogger::ReadableLogContext Context,
+      typename Self,
+      typename... Args>
     requires std::output_iterator<Out, const CharType&> &&
-             std::convertible_to<Context, const std::source_location&> &&
              std::
                  same_as<CharType, typename std::remove_cvref_t<Self>::CharType>
   Out formatTo(
@@ -82,7 +87,10 @@ class cpplogger::Logger {
    *
    * @todo Add default implementation for `wchar`.
    */
-  template <typename Context, typename Self, typename... Args>
+  template <
+      cpplogger::ReadableLogContext Context,
+      typename Self,
+      typename... Args>
     requires std::
         same_as<CharType, typename std::remove_cvref_t<Self>::CharType>
       void
