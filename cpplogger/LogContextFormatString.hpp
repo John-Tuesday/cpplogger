@@ -3,16 +3,12 @@
 
 #include "concepts.hpp"
 
-#include <concepts>
 #include <format>
 #include <source_location>
 
 namespace cpplogger {
 
-template <
-    std::constructible_from<std::source_location> Context,
-    typename CharT,
-    typename... Args>
+template <cpplogger::BasicLogContext Context, typename CharT, typename... Args>
 class LogContextFormatString;
 
 }
@@ -27,10 +23,7 @@ class LogContextFormatString;
  * @todo Add constraints like `std::is_trivially_constructible` to the `Context`
  * type depending on if context is meant to be copied or referenced.
  */
-template <
-    std::constructible_from<std::source_location> Ctx,
-    typename CharT,
-    typename... Args>
+template <cpplogger::BasicLogContext Ctx, typename CharT, typename... Args>
 class cpplogger::LogContextFormatString
     : public std::basic_format_string<CharT, std::type_identity_t<Args>...> {
  public:

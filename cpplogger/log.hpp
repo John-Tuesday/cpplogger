@@ -17,7 +17,7 @@ namespace cpplogger {
 template <
     typename LoggerType =
         cpplogger::DefaultLogger<cpplogger::DefaultTag>::Logger<char>,
-    typename Context,
+    cpplogger::ReadableLogContext Context,
     typename... Args>
 void log(
     Context&& context,

@@ -16,6 +16,14 @@ concept ReadableLogContext =
     std::convertible_to<T, const std::source_location&>;
 
 /**
+ * @brief Context can be constructed using `std::source_location` and is
+ * readable.
+ */
+template <typename T>
+concept BasicLogContext = cpplogger::ReadableLogContext<T> &&
+                          std::constructible_from<T, std::source_location>;
+
+/**
  * @brief Categorized context.
  */
 template <typename T, typename CharT>
