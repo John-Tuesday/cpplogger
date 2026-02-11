@@ -3,6 +3,7 @@
 
 #include <format>
 
+#include "LogContextFormatString.hpp"
 #include "context.hpp"
 #include "logger.hpp"
 
