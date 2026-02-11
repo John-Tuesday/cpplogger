@@ -2,7 +2,9 @@
 #define CPPLOGGER_CONCEPTS_HPP
 
 #include <concepts>
+#include <format>
 #include <source_location>
+#include <type_traits>
 
 namespace cpplogger {
 
@@ -12,6 +14,14 @@ namespace cpplogger {
 template <typename T>
 concept ReadableLogContext =
     std::convertible_to<T, const std::source_location&>;
+
+/**
+ * @brief Categorized context.
+ */
+template <typename T, typename CharT>
+concept CategorizedLogContext =
+    cpplogger::ReadableLogContext<T> &&
+    std::formattable<decltype(std::remove_cvref_t<T>::category), CharT>;
 
 }  // namespace cpplogger
 
