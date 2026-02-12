@@ -12,10 +12,10 @@ std::expected<void, std::string> testFormatTo();
 
 std::expected<void, std::wstring> testWideFormatTo();
 
-template <cpplogger::ReadableLogContext Context>
+template <typename Context>
 std::expected<void, std::string> testLog(Context&&);
 
-template <cpplogger::ReadableLogContext Context>
+template <typename Context>
 std::expected<void, std::wstring> testWideLog(Context&&);
 
 }  // namespace cpplogger::test
@@ -98,7 +98,7 @@ std::expected<void, std::wstring> cpplogger::test::testWideFormatTo() {
       capture.view())};
 }
 
-template <cpplogger::ReadableLogContext Context>
+template <typename Context>
 std::expected<void, std::string> cpplogger::test::testLog(Context&& context) {
   cpplogger::Logger<char> logger{};
   std::stringstream expectStream{};
@@ -122,7 +122,7 @@ std::expected<void, std::string> cpplogger::test::testLog(Context&& context) {
       actual)};
 }
 
-template <cpplogger::ReadableLogContext Context>
+template <typename Context>
 std::expected<void, std::wstring>
 cpplogger::test::testWideLog(Context&& context) {
   cpplogger::Logger<wchar_t> logger{};

@@ -1,12 +1,9 @@
 #ifndef CPPLOGGER_LOGGER_HPP
 #define CPPLOGGER_LOGGER_HPP
 
-#include "concepts.hpp"
-
 #include <format>
 #include <iostream>
 #include <iterator>
-#include <source_location>
 #include <type_traits>
 #include <utility>
 
@@ -55,15 +52,9 @@ class cpplogger::Logger {
    *
    * @see `std::format_to()`
    *
-   * @todo Better default formatting of context.
-   *
    * @return iterator past-the-end.
    */
-  template <
-      typename Out,
-      cpplogger::ReadableLogContext Context,
-      typename Self,
-      typename... Args>
+  template <typename Out, typename Context, typename Self, typename... Args>
     requires std::output_iterator<Out, const CharType&> &&
              std::
                  same_as<CharType, typename std::remove_cvref_t<Self>::CharType>
@@ -73,11 +64,10 @@ class cpplogger::Logger {
       Context&& context,
       std::basic_format_string<CharType, std::type_identity_t<Args>...> fmt,
       Args&&... args) {
-    const std::source_location& loc = context;
     static_assert(
         std::output_iterator<Out, const char&>,
         "extra formatting is not supported Cannot");
-    auto it = std::format_to(std::forward<Out>(out), "{}", loc.file_name());
+    auto it = std::format_to(std::forward<Out>(out), "{}", context);
     it = std::format_to(it, fmt, std::forward<Args>(args)...);
     return it;
   }
@@ -86,17 +76,12 @@ class cpplogger::Logger {
    * @brief Format and write a log message to all output targets and appends a
    * new line.
    */
-  template <
-      cpplogger::ReadableLogContext Context,
-      typename Self,
-      typename... Args>
-    requires std::
-        same_as<CharType, typename std::remove_cvref_t<Self>::CharType>
-      void
-      log(this Self&& self,
-          Context&& context,
-          std::basic_format_string<CharType, std::type_identity_t<Args>...> fmt,
-          Args&&... args) {
+  template <typename Context, typename Self, typename... Args>
+  void
+  log(this Self&& self,
+      Context&& context,
+      std::basic_format_string<CharType, std::type_identity_t<Args>...> fmt,
+      Args&&... args) {
     std::ostreambuf_iterator<CharType> out;
     if constexpr (std::same_as<char, CharType>) {
       out = std::cerr;
