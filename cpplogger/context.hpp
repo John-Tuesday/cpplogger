@@ -1,8 +1,6 @@
 #ifndef CPPLOGGER_CONTEXT_HPP
 #define CPPLOGGER_CONTEXT_HPP
 
-#include "concepts.hpp"
-
 #include <concepts>
 #include <format>
 #include <source_location>
@@ -19,12 +17,8 @@ struct VerboseContext;
 
 }  // namespace cpplogger
 
-template <>
-struct std::formatter<cpplogger::LogContext, char>;
-
 template <typename T>
-  requires std::derived_from<T, cpplogger::LogContext> &&
-           cpplogger::CategorizedLogContext<T, char>
+  requires std::derived_from<T, cpplogger::LogContext>
 struct std::formatter<T, char>;
 
 /**
@@ -52,37 +46,44 @@ struct cpplogger::LogContext : public std::source_location {
    */
   constexpr LogContext(std::source_location&& location) noexcept
       : std::source_location{std::move(location)} {}
+
+  template <typename Self>
+  constexpr std::string_view category(this const Self& self) {
+    using LogType = std::remove_cvref_t<Self>;
+    if constexpr (std::derived_from<LogType, cpplogger::FatalContext>)
+      return "fatal";
+    else if constexpr (std::derived_from<LogType, cpplogger::ErrorContext>)
+      return "error";
+    else if constexpr (std::derived_from<LogType, cpplogger::WarningContext>)
+      return "warn";
+    else if constexpr (std::derived_from<LogType, cpplogger::InfoContext>)
+      return "info";
+    else if constexpr (std::derived_from<LogType, cpplogger::DebugContext>)
+      return "debug";
+    else if constexpr (std::derived_from<LogType, cpplogger::VerboseContext>)
+      return "verbose";
+    return "";
+  }
 };
 
-struct cpplogger::FatalContext : public cpplogger::LogContext {
-  static constexpr std::string_view category = "fatal";
-};
+struct cpplogger::FatalContext : public cpplogger::LogContext {};
 
-struct cpplogger::ErrorContext : public cpplogger::LogContext {
-  static constexpr std::string_view category = "error";
-};
+struct cpplogger::ErrorContext : public cpplogger::LogContext {};
 
-struct cpplogger::WarningContext : public cpplogger::LogContext {
-  static constexpr std::string_view category = "warn";
-};
+struct cpplogger::WarningContext : public cpplogger::LogContext {};
 
-struct cpplogger::InfoContext : public cpplogger::LogContext {
-  static constexpr std::string_view category = "info";
-};
+struct cpplogger::InfoContext : public cpplogger::LogContext {};
 
-struct cpplogger::DebugContext : public cpplogger::LogContext {
-  static constexpr std::string_view category = "debug";
-};
+struct cpplogger::DebugContext : public cpplogger::LogContext {};
 
-struct cpplogger::VerboseContext : public cpplogger::LogContext {
-  static constexpr std::string_view category = "verbose";
-};
+struct cpplogger::VerboseContext : public cpplogger::LogContext {};
 
 /**
  * @brief Format basic context information.
  */
-template <>
-struct std::formatter<cpplogger::LogContext, char> {
+template <typename T>
+  requires std::derived_from<T, cpplogger::LogContext>
+struct std::formatter<T, char> {
 
   template <typename ParseContext>
   constexpr ParseContext::iterator parse(ParseContext& context) {
@@ -95,40 +96,18 @@ struct std::formatter<cpplogger::LogContext, char> {
 
   template <typename FormatContext>
   FormatContext::iterator
-  format(cpplogger::LogContext logContext, FormatContext& fmtContext) const {
+  format(const T& logContext, FormatContext& fmtContext) const {
     auto it = fmtContext.out();
-    auto end = std::format_to(
+    if (std::string_view category = logContext.category(); !category.empty())
+      it = std::format_to(it, "[{}] ", category);
+    it = std::format_to(
         it,
         "{}: {}:{} `{}`",
+        logContext.category(),
         logContext.file_name(),
         logContext.line(),
         logContext.column(),
         logContext.function_name());
-    return end;
-  }
-};
-
-/**
- * @brief Format like `cpplogger::LogContext` but include category information.
- */
-template <typename T>
-  requires std::derived_from<T, cpplogger::LogContext> &&
-           cpplogger::CategorizedLogContext<T, char>
-struct std::formatter<T> : public std::formatter<cpplogger::LogContext, char> {
-  using BaseFormatter = std::formatter<cpplogger::LogContext, char>;
-
-  using BaseFormatter::parse;
-
-  template <typename FormatContext>
-  FormatContext::iterator
-  format(T logContext, FormatContext& fmtContext) const {
-    auto it = fmtContext.out();
-    const std::source_location& location = logContext;
-    it = std::format_to(
-        it,
-        "[{}] {}",
-        decltype(logContext)::category,
-        static_cast<cpplogger::LogContext&>(logContext));
     return it;
   }
 };
