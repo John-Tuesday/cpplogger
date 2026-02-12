@@ -1,14 +1,13 @@
 #ifndef CPPLOGGER_LOGCONTEXTFORMATSTRING_HPP
 #define CPPLOGGER_LOGCONTEXTFORMATSTRING_HPP
 
-#include "concepts.hpp"
-
 #include <format>
 #include <source_location>
 
 namespace cpplogger {
 
-template <cpplogger::BasicLogContext Context, typename CharT, typename... Args>
+template <typename Context, typename CharT, typename... Args>
+  requires std::constructible_from<Context, std::source_location>
 class LogContextFormatString;
 
 }
@@ -23,7 +22,8 @@ class LogContextFormatString;
  * @todo Add constraints like `std::is_trivially_constructible` to the `Context`
  * type depending on if context is meant to be copied or referenced.
  */
-template <cpplogger::BasicLogContext Ctx, typename CharT, typename... Args>
+template <typename Ctx, typename CharT, typename... Args>
+  requires std::constructible_from<Ctx, std::source_location>
 class cpplogger::LogContextFormatString
     : public std::basic_format_string<CharT, std::type_identity_t<Args>...> {
  public:
