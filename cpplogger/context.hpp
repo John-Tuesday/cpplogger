@@ -7,7 +7,7 @@
 
 namespace cpplogger {
 
-struct LogContext;
+struct BasicLogContext;
 struct FatalContext;
 struct ErrorContext;
 struct WarningContext;
@@ -18,18 +18,18 @@ struct VerboseContext;
 }  // namespace cpplogger
 
 template <typename T>
-  requires std::derived_from<T, cpplogger::LogContext>
+  requires std::derived_from<T, cpplogger::BasicLogContext>
 struct std::formatter<T, char>;
 
 /**
  * @brief Root class which provides context to logging functions.
  */
-struct cpplogger::LogContext : public std::source_location {
+struct cpplogger::BasicLogContext : public std::source_location {
   /**
    * @brief Default initialization, follows `std::source_location` default
    * initialization.
    */
-  constexpr LogContext() noexcept : std::source_location{} {}
+  constexpr BasicLogContext() noexcept : std::source_location{} {}
 
   /**
    * @note Although this function has been marked `constexpr`, the standard does
@@ -37,14 +37,14 @@ struct cpplogger::LogContext : public std::source_location {
    * @note This function not `noexcept` because neither is the copy constructor
    * of `std::source_location`.
    */
-  constexpr LogContext(const std::source_location& location)
+  constexpr BasicLogContext(const std::source_location& location)
       : std::source_location{location} {}
 
   /**
    * @note Although this function has been marked `constexpr`, the standard does
    * not specifiy if the `std::source_location` is `constexpr` or not.
    */
-  constexpr LogContext(std::source_location&& location) noexcept
+  constexpr BasicLogContext(std::source_location&& location) noexcept
       : std::source_location{std::move(location)} {}
 
   template <typename Self>
@@ -66,23 +66,23 @@ struct cpplogger::LogContext : public std::source_location {
   }
 };
 
-struct cpplogger::FatalContext : public cpplogger::LogContext {};
+struct cpplogger::FatalContext : public cpplogger::BasicLogContext {};
 
-struct cpplogger::ErrorContext : public cpplogger::LogContext {};
+struct cpplogger::ErrorContext : public cpplogger::BasicLogContext {};
 
-struct cpplogger::WarningContext : public cpplogger::LogContext {};
+struct cpplogger::WarningContext : public cpplogger::BasicLogContext {};
 
-struct cpplogger::InfoContext : public cpplogger::LogContext {};
+struct cpplogger::InfoContext : public cpplogger::BasicLogContext {};
 
-struct cpplogger::DebugContext : public cpplogger::LogContext {};
+struct cpplogger::DebugContext : public cpplogger::BasicLogContext {};
 
-struct cpplogger::VerboseContext : public cpplogger::LogContext {};
+struct cpplogger::VerboseContext : public cpplogger::BasicLogContext {};
 
 /**
  * @brief Format basic context information.
  */
 template <typename T>
-  requires std::derived_from<T, cpplogger::LogContext>
+  requires std::derived_from<T, cpplogger::BasicLogContext>
 struct std::formatter<T, char> {
 
   template <typename ParseContext>

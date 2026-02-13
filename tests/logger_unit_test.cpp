@@ -37,11 +37,11 @@ std::wstring errorMessage(
   return std::move(stream).str();
 }
 
-std::expected<void, std::string>
-testFormatTo(cpplogger::LogContext context = {std::source_location::current()});
+std::expected<void, std::string> testFormatTo(
+    cpplogger::BasicLogContext context = {std::source_location::current()});
 
 std::expected<void, std::wstring> testWideFormatTo(
-    cpplogger::LogContext context = {std::source_location::current()});
+    cpplogger::BasicLogContext context = {std::source_location::current()});
 
 template <typename Context>
 std::expected<void, std::string> testLog(Context&&);
@@ -60,7 +60,7 @@ int main() {
     std::wcerr << result.error() << "\n";
     return 1;
   }
-  cpplogger::LogContext context{std::source_location::current()};
+  cpplogger::BasicLogContext context{std::source_location::current()};
   if (std::expected result = cpplogger::test::testLog(context); !result) {
     std::println(std::cerr, "{}\n", result.error());
     return 1;
@@ -73,7 +73,7 @@ int main() {
 }
 
 std::expected<void, std::string>
-cpplogger::test::testFormatTo(cpplogger::LogContext context) {
+cpplogger::test::testFormatTo(cpplogger::BasicLogContext context) {
   std::string expect = std::format("{} one two three equal 1 2 3!", context);
   std::stringstream capture{};
   cpplogger::BasicLogger<char> logger{};
@@ -91,7 +91,7 @@ cpplogger::test::testFormatTo(cpplogger::LogContext context) {
 }
 
 std::expected<void, std::wstring>
-cpplogger::test::testWideFormatTo(cpplogger::LogContext context) {
+cpplogger::test::testWideFormatTo(cpplogger::BasicLogContext context) {
   std::wstringstream expectStream;
   std::format_to(
       std::ostreambuf_iterator{expectStream},
