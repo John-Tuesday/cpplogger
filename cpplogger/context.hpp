@@ -5,6 +5,9 @@
 #include <format>
 #include <source_location>
 
+#include <iterator>
+#include <sstream>
+
 namespace cpplogger {
 
 struct BasicLogContext;
@@ -29,7 +32,8 @@ struct cpplogger::BasicLogContext : public std::source_location {
    * @brief Default initialization, follows `std::source_location` default
    * initialization.
    */
-  constexpr BasicLogContext() noexcept : std::source_location{} {}
+  constexpr BasicLogContext() noexcept
+      : std::source_location{}, m_empty{true} {}
 
   /**
    * @note Although this function has been marked `constexpr`, the standard does
@@ -46,6 +50,8 @@ struct cpplogger::BasicLogContext : public std::source_location {
    */
   constexpr BasicLogContext(std::source_location&& location) noexcept
       : std::source_location{std::move(location)} {}
+
+  constexpr bool empty() const { return m_empty; }
 
   template <typename Self>
   constexpr std::string_view category(this const Self& self) {
@@ -64,6 +70,9 @@ struct cpplogger::BasicLogContext : public std::source_location {
       return "verbose";
     return "";
   }
+
+ private:
+  bool m_empty{false};
 };
 
 struct cpplogger::FatalContext : public cpplogger::BasicLogContext {};
@@ -99,11 +108,13 @@ struct std::formatter<T, char> {
   format(const T& logContext, FormatContext& fmtContext) const {
     auto it = fmtContext.out();
     if (std::string_view category = logContext.category(); !category.empty())
-      it = std::format_to(it, "[{}] ", category);
+      it =
+          std::format_to(it, "[{}]{}", category, logContext.empty() ? "" : " ");
+    if (logContext.empty())
+      return it;
     it = std::format_to(
         it,
         "{}: {}:{} `{}`",
-        logContext.category(),
         logContext.file_name(),
         logContext.line(),
         logContext.column(),
