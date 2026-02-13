@@ -71,6 +71,10 @@ class cpplogger::BasicLogger {
         std::forward<Out>(out),
         "{}",
         std::forward<Context>(context));
+    if (std::formatted_size("{}", std::forward<Context>(context)) > 0) {
+      *it = ' ';
+      ++it;
+    }
     it = std::format_to(it, fmt, std::forward<Args>(args)...);
     return it;
   }
