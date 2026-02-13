@@ -8,9 +8,40 @@
 
 namespace cpplogger::test {
 
-std::expected<void, std::string> testFormatTo();
+std::string errorMessage(
+    std::string_view expect,
+    std::string_view actual,
+    std::source_location location = std::source_location::current()) {
+  return std::format(
+      "in function: {}\n"
+      "expect: '{}'\n"
+      "actual: '{}'",
+      location.function_name(),
+      expect,
+      actual);
+}
 
-std::expected<void, std::wstring> testWideFormatTo();
+std::wstring errorMessage(
+    std::wstring_view expect,
+    std::wstring_view actual,
+    std::source_location location = std::source_location::current()) {
+  std::wstringstream stream;
+  std::ostreambuf_iterator out{stream};
+  out = std::format_to(out, "in function: {}\n", location.function_name());
+  std::format_to(
+      out,
+      L"expect: '{}'\n"
+      L"actual: '{}'",
+      expect,
+      actual);
+  return std::move(stream).str();
+}
+
+std::expected<void, std::string>
+testFormatTo(cpplogger::LogContext context = {std::source_location::current()});
+
+std::expected<void, std::wstring> testWideFormatTo(
+    cpplogger::LogContext context = {std::source_location::current()});
 
 template <typename Context>
 std::expected<void, std::string> testLog(Context&&);
@@ -22,38 +53,28 @@ std::expected<void, std::wstring> testWideLog(Context&&);
 
 int main() {
   if (std::expected result = cpplogger::test::testFormatTo(); !result) {
-    std::println(std::cerr, "Failed!\n{}", result.error());
+    std::println(std::cerr, "{}", result.error());
     return 1;
   }
   if (std::expected result = cpplogger::test::testWideFormatTo(); !result) {
-    std::format_to(
-        std::ostreambuf_iterator{std::wcerr},
-        L"Failed!\n{}",
-        result.error());
+    std::wcerr << result.error() << "\n";
     return 1;
   }
   cpplogger::LogContext context{std::source_location::current()};
   if (std::expected result = cpplogger::test::testLog(context); !result) {
-    std::format_to(
-        std::ostreambuf_iterator{std::wcerr},
-        "Failed!\n{}\n",
-        result.error());
+    std::println(std::cerr, "{}\n", result.error());
     return 1;
   }
   if (std::expected result = cpplogger::test::testWideLog(context); !result) {
-    std::format_to(
-        std::ostreambuf_iterator{std::wcerr},
-        L"Failed!\n{}\n",
-        result.error());
+    std::wcerr << result.error() << "\n";
     return 1;
   }
   return 0;
 }
 
-std::expected<void, std::string> cpplogger::test::testFormatTo() {
-  constexpr cpplogger::LogContext context{};
-  std::string expect =
-      std::format("{}one two three equal 1 2 3!", context.file_name());
+std::expected<void, std::string>
+cpplogger::test::testFormatTo(cpplogger::LogContext context) {
+  std::string expect = std::format("{} one two three equal 1 2 3!", context);
   std::stringstream capture{};
   cpplogger::BasicLogger<char> logger{};
   logger.formatTo(
@@ -63,23 +84,20 @@ std::expected<void, std::string> cpplogger::test::testFormatTo() {
       1,
       2,
       3);
-  if (expect == capture.view())
-    return {};
-  return std::unexpected{std::format(
-      "expected: '{}'\n"
-      "actual: '{}'",
-      expect,
-      capture.view())};
+  if (expect != capture.view())
+    return std::unexpected{
+        cpplogger::test::errorMessage(expect, capture.view())};
+  return {};
 }
 
-std::expected<void, std::wstring> cpplogger::test::testWideFormatTo() {
-  constexpr cpplogger::LogContext context{std::source_location::current()};
-  std::wstringstream expStream{};
+std::expected<void, std::wstring>
+cpplogger::test::testWideFormatTo(cpplogger::LogContext context) {
+  std::wstringstream expectStream;
   std::format_to(
-      std::ostreambuf_iterator{expStream},
-      "{}one two three equal 1 2 3!",
-      context.file_name());
-  std::wstring_view expect = expStream.view();
+      std::ostreambuf_iterator{expectStream},
+      "{} one two three equal 1 2 3!",
+      context);
+  std::wstring_view expect = expectStream.view();
   std::wstringstream capture{};
   cpplogger::BasicLogger<wchar_t> logger{};
   logger.formatTo(
@@ -89,13 +107,10 @@ std::expected<void, std::wstring> cpplogger::test::testWideFormatTo() {
       1,
       2,
       3);
-  if (expect == capture.view())
-    return {};
-  return std::unexpected{std::format(
-      L"expected: '{}'\n"
-      L"actual: '{}'",
-      expect,
-      capture.view())};
+  if (expect != capture.view())
+    return std::unexpected{
+        cpplogger::test::errorMessage(expect, capture.view())};
+  return {};
 }
 
 template <typename Context>
@@ -112,14 +127,9 @@ std::expected<void, std::string> cpplogger::test::testLog(Context&& context) {
   logger.log(context, "test log");
   std::cerr.rdbuf(old);
   std::string_view actual = capture.view();
-  if (expect == actual) {
-    return {};
-  }
-  return std::unexpected{std::format(
-      "expect: '{}'\n"
-      "actual: '{}'\n",
-      expect,
-      actual)};
+  if (expect != actual)
+    return std::unexpected{cpplogger::test::errorMessage(expect, actual)};
+  return {};
 }
 
 template <typename Context>
@@ -137,12 +147,7 @@ cpplogger::test::testWideLog(Context&& context) {
   logger.log(context, L"test log");
   std::wcerr.rdbuf(old);
   std::wstring_view actual = capture.view();
-  if (expect == actual) {
-    return {};
-  }
-  return std::unexpected{std::format(
-      L"expect: '{}'\n"
-      L"actual: '{}'\n",
-      expect,
-      actual)};
+  if (expect != actual)
+    return std::unexpected{cpplogger::test::errorMessage(expect, actual)};
+  return {};
 }
