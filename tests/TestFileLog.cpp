@@ -14,7 +14,7 @@ namespace cpplogger::test {
 
 class LogTargetsBasicFileLog;
 
-class LogTargetsBasicFileLog : public cpplogger::Logger<char> {
+class LogTargetsBasicFileLog : public cpplogger::BasicLogger<char> {
 
  public:
   LogTargetsBasicFileLog();

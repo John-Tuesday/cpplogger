@@ -55,7 +55,7 @@ std::expected<void, std::string> cpplogger::test::testFormatTo() {
   std::string expect =
       std::format("{}one two three equal 1 2 3!", context.file_name());
   std::stringstream capture{};
-  cpplogger::Logger<char> logger{};
+  cpplogger::BasicLogger<char> logger{};
   logger.formatTo(
       std::ostreambuf_iterator{capture},
       context,
@@ -81,7 +81,7 @@ std::expected<void, std::wstring> cpplogger::test::testWideFormatTo() {
       context.file_name());
   std::wstring_view expect = expStream.view();
   std::wstringstream capture{};
-  cpplogger::Logger<wchar_t> logger{};
+  cpplogger::BasicLogger<wchar_t> logger{};
   logger.formatTo(
       std::ostreambuf_iterator{capture},
       context,
@@ -100,7 +100,7 @@ std::expected<void, std::wstring> cpplogger::test::testWideFormatTo() {
 
 template <typename Context>
 std::expected<void, std::string> cpplogger::test::testLog(Context&& context) {
-  cpplogger::Logger<char> logger{};
+  cpplogger::BasicLogger<char> logger{};
   std::stringstream expectStream{};
   logger.formatTo(
       std::ostreambuf_iterator{expectStream},
@@ -125,7 +125,7 @@ std::expected<void, std::string> cpplogger::test::testLog(Context&& context) {
 template <typename Context>
 std::expected<void, std::wstring>
 cpplogger::test::testWideLog(Context&& context) {
-  cpplogger::Logger<wchar_t> logger{};
+  cpplogger::BasicLogger<wchar_t> logger{};
   std::wstringstream expectStream{};
   logger.formatTo(
       std::ostreambuf_iterator{expectStream},

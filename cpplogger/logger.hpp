@@ -10,7 +10,7 @@
 namespace cpplogger {
 
 template <typename CharT>
-class Logger;
+class BasicLogger;
 
 struct DefaultTag;
 
@@ -32,7 +32,7 @@ struct cpplogger::DefaultTag {};
 template <typename>
 struct cpplogger::DefaultLogger {
   template <typename C>
-  using Logger = cpplogger::Logger<C>;
+  using Logger = cpplogger::BasicLogger<C>;
 };
 
 /**
@@ -40,7 +40,7 @@ struct cpplogger::DefaultLogger {
  * subclassing.
  */
 template <typename C = char>
-class cpplogger::Logger {
+class cpplogger::BasicLogger {
  public:
   /**
    * @brief Output character type.
