@@ -64,6 +64,7 @@ std::expected<void, std::string> testAllContexts() {
 
 int main() {
   if (auto result = cpplogger::test::testAllContexts<
+          cpplogger::BasicLogContext,
           cpplogger::FatalContext,
           cpplogger::ErrorContext,
           cpplogger::WarningContext,
