@@ -13,6 +13,19 @@ add_test(NAME "CppLogger: Logger [Unit Test]"
   COMMAND cpplogger_logger_unit_test
 )
 
+add_executable(cpplogger_logcontext_unit_test)
+target_sources(cpplogger_logcontext_unit_test
+  PRIVATE
+    logcontext_formatter_unit_test.cpp
+)
+target_link_libraries(cpplogger_logcontext_unit_test
+  PRIVATE
+    CppLogger::HeaderOnly
+)
+add_test(NAME "CppLogger: LogContext [Unit Test]"
+  COMMAND cpplogger_logcontext_unit_test
+)
+
 add_executable(cpplogger_log_to_file)
 target_sources(cpplogger_log_to_file
   PRIVATE
