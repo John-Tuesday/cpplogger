@@ -8,6 +8,7 @@
 namespace cpplogger::test {
 namespace {
 
+static_assert(std::formattable<cpplogger::BasicLogContext, char>);
 static_assert(std::formattable<cpplogger::FatalContext, char>);
 static_assert(std::formattable<cpplogger::ErrorContext, char>);
 static_assert(std::formattable<cpplogger::WarningContext, char>);
@@ -49,6 +50,18 @@ std::expected<void, std::string> derivedContextKeepsCategoryName() {
   }
   if (!pass)
     return std::unexpected{std::move(stream.str())};
+  return {};
+}
+
+template <typename T>
+std::expected<void, std::string> formatEmptyKeepsOnlyCategory(T context) {
+  assert(context.empty());
+  std::string actual = std::format("{}", context);
+  std::string expect =
+      context.category().empty() ? "" : std::format("[{}]", context.category());
+  if (actual != expect)
+    return std::unexpected{
+        std::format("expected: '{}'\nactual: '{}'", expect, actual)};
   return {};
 }
 
