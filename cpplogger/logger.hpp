@@ -54,20 +54,23 @@ class cpplogger::BasicLogger {
    *
    * @return iterator past-the-end.
    */
-  template <typename Out, typename Context, typename Self, typename... Args>
-    requires std::output_iterator<Out, const CharType&> &&
-             std::
-                 same_as<CharType, typename std::remove_cvref_t<Self>::CharType>
+  template <typename Out, typename Context, typename... Args>
+    requires std::output_iterator<Out, const CharType&>
   Out formatTo(
-      this Self&& self,
       Out out,
       Context&& context,
       std::basic_format_string<CharType, std::type_identity_t<Args>...> fmt,
-      Args&&... args) {
+      Args&&... args) const {
+    static_assert(
+        std::formattable<Context, char>,
+        "Context cannot be formatted to 'char'");
     static_assert(
         std::output_iterator<Out, const char&>,
-        "extra formatting is not supported Cannot");
-    auto it = std::format_to(std::forward<Out>(out), "{}", context);
+        "Context cannot be written to the output iterator");
+    auto it = std::format_to(
+        std::forward<Out>(out),
+        "{}",
+        std::forward<Context>(context));
     it = std::format_to(it, fmt, std::forward<Args>(args)...);
     return it;
   }
