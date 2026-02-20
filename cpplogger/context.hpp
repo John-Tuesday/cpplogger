@@ -5,9 +5,6 @@
 #include <format>
 #include <source_location>
 
-#include <iterator>
-#include <sstream>
-
 namespace cpplogger {
 
 struct BasicLogContext;

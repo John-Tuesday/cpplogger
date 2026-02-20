@@ -11,8 +11,6 @@ namespace cpplogger {
 
 /**
  * @brief Format and write log message using default constructed `LoggerType`.
- *
- * @todo Add constraints to `Context` to match the logger.
  */
 template <
     typename LoggerType =
