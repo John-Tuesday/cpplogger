@@ -4,6 +4,7 @@
 #include <cpplogger/logger.hpp>
 
 #include <cassert>
+#include <expected>
 #include <fstream>
 #include <print>
 #include <source_location>
@@ -56,13 +57,16 @@ class LogTargetsBasicFileLog : public cpplogger::BasicLogger<char> {
   std::ofstream getLogStream() const;
 };
 
-bool testFileLog(std::string_view input);
+std::expected<void, std::string> testFileLog(std::string_view input);
 
 }  // namespace cpplogger::test
 
 int main() {
-  if (!cpplogger::test::testFileLog("info: 5 == 5"))
+  if (std::expected result = cpplogger::test::testFileLog("info: 5 == 5");
+      !result) {
+    std::println("FAIL: {}", result.error());
     return 1;
+  }
   return 0;
 }
 
@@ -77,11 +81,11 @@ std::ofstream cpplogger::test::LogTargetsBasicFileLog::getLogStream() const {
 /**
  * Log to a logger which writes to a file, then verify the contents of the file.
  *
- * TODO: Find a better to communicate reasons for failure
  * TODO: Communicate when failure is due to file access, like log file is cannot
  * be written to.
  */
-bool cpplogger::test::testFileLog(std::string_view input) {
+std::expected<void, std::string>
+cpplogger::test::testFileLog(std::string_view input) {
   using Context = cpplogger::InfoContext;
   cpplogger::test::LogTargetsBasicFileLog logger{};
   std::stringstream captured{};
@@ -94,18 +98,17 @@ bool cpplogger::test::testFileLog(std::string_view input) {
   std::string actual(expect.size(), '\0');
   logIn.read(actual.data(), actual.size());
   if (actual != expect) {
-    std::println(
-        "log file did not contain expected contents\n"
-        "  file: '{}'\n"
-        "  expected: '{}'\n  actual: '{}'",
-        logger.getLogPath().generic_string(),
-        expect,
-        actual);
-    return false;
+    return std::unexpected(
+        std::format(
+            "log file did not contain expected contents\n"
+            "  file: '{}'\n"
+            "  expected: '{}'\n  actual: '{}'",
+            logger.getLogPath().generic_string(),
+            expect,
+            actual));
   }
   if (logIn.peek() != std::char_traits<char>::eof()) {
-    std::println("did not reach EOF");
-    return false;
+    return std::unexpected("did not reach EOF");
   }
-  return true;
+  return {};
 }
