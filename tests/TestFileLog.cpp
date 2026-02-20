@@ -15,12 +15,16 @@ namespace cpplogger::test {
 
 class LogTargetsBasicFileLog;
 
-std::expected<void, std::string> testFileLog(std::string_view input);
+template <typename Context>
+std::expected<void, std::string> testFileLog(
+    std::string_view input,
+    Context context = {std::source_location::current()});
 
 }  // namespace cpplogger::test
 
 int main() {
-  if (std::expected result = cpplogger::test::testFileLog("info: 5 == 5");
+  if (std::expected result =
+          cpplogger::test::testFileLog<cpplogger::InfoContext>("info: 5 == 5");
       !result) {
     std::println("FAIL: {}", result.error());
     return 1;
@@ -85,12 +89,11 @@ std::ofstream cpplogger::test::LogTargetsBasicFileLog::getLogStream() const {
  * TODO: Communicate when failure is due to file access, like log file is cannot
  * be written to.
  */
+template <typename Context>
 std::expected<void, std::string>
-cpplogger::test::testFileLog(std::string_view input) {
-  using Context = cpplogger::InfoContext;
+cpplogger::test::testFileLog(std::string_view input, Context context) {
   cpplogger::test::LogTargetsBasicFileLog logger{};
   std::stringstream captured{};
-  Context context{std::source_location::current()};
   logger.formatTo(std::ostreambuf_iterator{captured}, context, "{}", input);
   logger.log(context, "{}", input);
   std::string_view expect = captured.view();
