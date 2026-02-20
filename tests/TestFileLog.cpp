@@ -15,7 +15,21 @@ namespace cpplogger::test {
 
 class LogTargetsBasicFileLog;
 
-class LogTargetsBasicFileLog : public cpplogger::BasicLogger<char> {
+std::expected<void, std::string> testFileLog(std::string_view input);
+
+}  // namespace cpplogger::test
+
+int main() {
+  if (std::expected result = cpplogger::test::testFileLog("info: 5 == 5");
+      !result) {
+    std::println("FAIL: {}", result.error());
+    return 1;
+  }
+  return 0;
+}
+
+class cpplogger::test::LogTargetsBasicFileLog
+    : public cpplogger::BasicLogger<char> {
 
  public:
   LogTargetsBasicFileLog();
@@ -56,19 +70,6 @@ class LogTargetsBasicFileLog : public cpplogger::BasicLogger<char> {
    */
   std::ofstream getLogStream() const;
 };
-
-std::expected<void, std::string> testFileLog(std::string_view input);
-
-}  // namespace cpplogger::test
-
-int main() {
-  if (std::expected result = cpplogger::test::testFileLog("info: 5 == 5");
-      !result) {
-    std::println("FAIL: {}", result.error());
-    return 1;
-  }
-  return 0;
-}
 
 cpplogger::test::LogTargetsBasicFileLog::LogTargetsBasicFileLog() {
   m_logPath = *cpplogger::test::tempDirectory() / getLogFileName();
