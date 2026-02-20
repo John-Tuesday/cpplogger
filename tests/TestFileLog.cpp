@@ -3,7 +3,6 @@
 #include <cpplogger/context.hpp>
 #include <cpplogger/logger.hpp>
 
-#include <cassert>
 #include <expected>
 #include <fstream>
 #include <print>
@@ -85,9 +84,6 @@ std::ofstream cpplogger::test::LogTargetsBasicFileLog::getLogStream() const {
 
 /**
  * Log to a logger which writes to a file, then verify the contents of the file.
- *
- * TODO: Communicate when failure is due to file access, like log file is cannot
- * be written to.
  */
 template <typename Context>
 std::expected<void, std::string>
@@ -98,16 +94,26 @@ cpplogger::test::testFileLog(std::string_view input, Context context) {
   logger.log(context, "{}", input);
   std::string_view expect = captured.view();
   std::ifstream logIn{logger.getLogPath()};
+  if (!logIn.is_open()) {
+    return std::unexpected(
+        std::format(
+            "Failed to open file '{}'",
+            logger.getLogPath().generic_string()));
+  }
   logIn.sync();
   std::string actual(expect.size(), '\0');
   logIn.read(actual.data(), actual.size());
+  if (logIn.bad()) {
+    return std::unexpected(
+        std::format(
+            "I/O error while reading file '{}'",
+            logger.getLogPath().generic_string()));
+  }
   if (actual != expect) {
     return std::unexpected(
         std::format(
             "log file did not contain expected contents\n"
-            "  file: '{}'\n"
             "  expected: '{}'\n  actual: '{}'",
-            logger.getLogPath().generic_string(),
             expect,
             actual));
   }
