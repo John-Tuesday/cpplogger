@@ -19,15 +19,22 @@ class LogContextFormatString;
  *
  * @todo Consider letting the context variable be mutable.
  * @todo The context getter should reflect the mutability of the context.
- * @todo Add constraints like `std::is_trivially_constructible` to the `Context`
- * type depending on if context is meant to be copied or referenced.
  */
 template <typename Ctx, typename CharT, typename... Args>
   requires std::constructible_from<Ctx, std::source_location>
 class cpplogger::LogContextFormatString
     : public std::basic_format_string<CharT, std::type_identity_t<Args>...> {
  public:
+  /**
+   * @brief Type which is stored by `this` and should provide contextual
+   * information to loggers.
+   */
   using Context = Ctx;
+
+  /**
+   * @brief Character type used to represent the underlying format string.
+   */
+  using CharType = CharT;
 
   /**
    * @brief Intended to be used a drop-in replacement for

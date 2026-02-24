@@ -26,6 +26,12 @@ template <typename T>
   requires std::derived_from<T, cpplogger::BasicLogContext>
 struct std::formatter<T, char> {
 
+  /**
+   * @brief Parse format-spec.
+   *
+   * No formatting specification is provided or implemented. An error is given
+   * if anything is format-spec is given.
+   */
   template <typename ParseContext>
   constexpr ParseContext::iterator parse(ParseContext& context) {
     auto it = context.begin();
@@ -35,6 +41,9 @@ struct std::formatter<T, char> {
     return it;
   }
 
+  /**
+   * @brief Write formatted text to output.
+   */
   template <typename FormatContext>
   FormatContext::iterator
   format(const T& logContext, FormatContext& fmtContext) const {

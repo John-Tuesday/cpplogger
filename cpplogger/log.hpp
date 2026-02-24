@@ -27,6 +27,10 @@ void log(
       std::forward<Args>(args)...);
 }
 
+/**
+ * @copybrief `cpplogger::log()`
+ * @brief Uses the default fatal context.
+ */
 template <
     typename LoggerType =
         cpplogger::DefaultLogger<cpplogger::DefaultTag>::Logger<char>,
@@ -40,6 +44,10 @@ void logFatal(
   LoggerType{}.log(fmt.context(), fmt, std::forward<Args>(args)...);
 }
 
+/**
+ * @copybrief `cpplogger::log()`
+ * @brief Uses the default error context.
+ */
 template <
     typename LoggerType =
         cpplogger::DefaultLogger<cpplogger::DefaultTag>::Logger<char>,
@@ -53,6 +61,10 @@ void logError(
   LoggerType{}.log(fmt.context(), fmt, std::forward<Args>(args)...);
 }
 
+/**
+ * @copybrief `cpplogger::log()`
+ * @brief Uses the default warning context.
+ */
 template <
     typename LoggerType =
         cpplogger::DefaultLogger<cpplogger::DefaultTag>::Logger<char>,
@@ -66,6 +78,10 @@ void logWarn(
   LoggerType{}.log(fmt.context(), fmt, std::forward<Args>(args)...);
 }
 
+/**
+ * @copybrief `cpplogger::log()`
+ * @brief Uses the default info context.
+ */
 template <
     typename LoggerType =
         cpplogger::DefaultLogger<cpplogger::DefaultTag>::Logger<char>,
@@ -79,6 +95,10 @@ void logInfo(
   LoggerType{}.log(fmt.context(), fmt, std::forward<Args>(args)...);
 }
 
+/**
+ * @copybrief `cpplogger::log()`
+ * @brief Uses the default debug context.
+ */
 template <
     typename LoggerType =
         cpplogger::DefaultLogger<cpplogger::DefaultTag>::Logger<char>,
@@ -92,6 +112,10 @@ void logDebug(
   LoggerType{}.log(fmt.context(), fmt, std::forward<Args>(args)...);
 }
 
+/**
+ * @copybrief `cpplogger::log()`
+ * @brief Uses the default verbose context.
+ */
 template <
     typename LoggerType =
         cpplogger::DefaultLogger<cpplogger::DefaultTag>::Logger<char>,

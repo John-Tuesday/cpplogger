@@ -44,8 +44,16 @@ struct cpplogger::BasicLogContext : public std::source_location {
   constexpr BasicLogContext(std::source_location&& location) noexcept
       : std::source_location{std::move(location)} {}
 
+  /**
+   * @return `true` if default initialized, `false` otherwise.
+   */
   constexpr bool empty() const { return m_empty; }
 
+  /**
+   * @brief Provides the categorical type of a log context type.
+   *
+   * @return Lowercase name of the category, empty if none is defined.
+   */
   template <typename Self>
   constexpr std::string_view category(this const Self& self) {
     using LogType = std::remove_cvref_t<Self>;
@@ -68,16 +76,34 @@ struct cpplogger::BasicLogContext : public std::source_location {
   bool m_empty{false};
 };
 
+/**
+ * @brief Default fatal context.
+ */
 struct cpplogger::FatalContext : public cpplogger::BasicLogContext {};
 
+/**
+ * @brief Default error context.
+ */
 struct cpplogger::ErrorContext : public cpplogger::BasicLogContext {};
 
+/**
+ * @brief Default warning context.
+ */
 struct cpplogger::WarningContext : public cpplogger::BasicLogContext {};
 
+/**
+ * @brief Default info context.
+ */
 struct cpplogger::InfoContext : public cpplogger::BasicLogContext {};
 
+/**
+ * @brief Default debug context.
+ */
 struct cpplogger::DebugContext : public cpplogger::BasicLogContext {};
 
+/**
+ * @brief Default verbose context.
+ */
 struct cpplogger::VerboseContext : public cpplogger::BasicLogContext {};
 
 #endif
