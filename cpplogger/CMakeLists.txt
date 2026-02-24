@@ -9,9 +9,9 @@ target_sources(cpplogger_header_only
   FILES
     concepts.hpp
     log.hpp
-    logger.hpp
     context.hpp
     BasicLogger.hpp
+    Defaults.hpp
     LogContextFormatString.hpp
     LogContextFormatter.hpp
 )

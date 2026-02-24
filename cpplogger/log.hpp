@@ -3,9 +3,9 @@
 
 #include <format>
 
+#include "Defaults.hpp"
 #include "LogContextFormatString.hpp"
 #include "context.hpp"
-#include "logger.hpp"
 
 namespace cpplogger {
 
@@ -13,8 +13,7 @@ namespace cpplogger {
  * @brief Format and write log message using default constructed `LoggerType`.
  */
 template <
-    typename LoggerType =
-        cpplogger::DefaultLogger<cpplogger::DefaultTag>::Logger<char>,
+    typename LoggerType = cpplogger::Defaults<>::Logger<char>,
     typename Context,
     typename... Args>
 void log(
@@ -32,8 +31,7 @@ void log(
  * @brief Uses the default fatal context.
  */
 template <
-    typename LoggerType =
-        cpplogger::DefaultLogger<cpplogger::DefaultTag>::Logger<char>,
+    typename LoggerType = cpplogger::Defaults<>::Logger<char>,
     typename... Args>
 void logFatal(
     cpplogger::LogContextFormatString<
@@ -49,8 +47,7 @@ void logFatal(
  * @brief Uses the default error context.
  */
 template <
-    typename LoggerType =
-        cpplogger::DefaultLogger<cpplogger::DefaultTag>::Logger<char>,
+    typename LoggerType = cpplogger::Defaults<>::Logger<char>,
     typename... Args>
 void logError(
     cpplogger::LogContextFormatString<
@@ -66,8 +63,7 @@ void logError(
  * @brief Uses the default warning context.
  */
 template <
-    typename LoggerType =
-        cpplogger::DefaultLogger<cpplogger::DefaultTag>::Logger<char>,
+    typename LoggerType = cpplogger::Defaults<>::Logger<char>,
     typename... Args>
 void logWarning(
     cpplogger::LogContextFormatString<
@@ -82,8 +78,7 @@ void logWarning(
  * @copydoc `cpplogger::logWarning()`
  */
 template <
-    typename LoggerType =
-        cpplogger::DefaultLogger<cpplogger::DefaultTag>::Logger<char>,
+    typename LoggerType = cpplogger::Defaults<>::Logger<char>,
     typename... Args>
 void logWarn(
     cpplogger::LogContextFormatString<
@@ -99,8 +94,7 @@ void logWarn(
  * @brief Uses the default info context.
  */
 template <
-    typename LoggerType =
-        cpplogger::DefaultLogger<cpplogger::DefaultTag>::Logger<char>,
+    typename LoggerType = cpplogger::Defaults<>::Logger<char>,
     typename... Args>
 void logInfo(
     cpplogger::LogContextFormatString<
@@ -116,8 +110,7 @@ void logInfo(
  * @brief Uses the default debug context.
  */
 template <
-    typename LoggerType =
-        cpplogger::DefaultLogger<cpplogger::DefaultTag>::Logger<char>,
+    typename LoggerType = cpplogger::Defaults<>::Logger<char>,
     typename... Args>
 void logDebug(
     cpplogger::LogContextFormatString<
@@ -133,8 +126,7 @@ void logDebug(
  * @brief Uses the default verbose context.
  */
 template <
-    typename LoggerType =
-        cpplogger::DefaultLogger<cpplogger::DefaultTag>::Logger<char>,
+    typename LoggerType = cpplogger::Defaults<>::Logger<char>,
     typename... Args>
 void logVerbose(
     cpplogger::LogContextFormatString<

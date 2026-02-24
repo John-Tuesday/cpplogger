@@ -1,8 +1,8 @@
 #include "fixtures/tempfiles.hpp"
 
+#include <cpplogger/BasicLogger.hpp>
 #include <cpplogger/LogContextFormatter.hpp>
 #include <cpplogger/context.hpp>
-#include <cpplogger/logger.hpp>
 
 #include <expected>
 #include <fstream>

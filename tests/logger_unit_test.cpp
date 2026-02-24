@@ -1,6 +1,7 @@
+#include <cpplogger/BasicLogger.hpp>
+#include <cpplogger/Defaults.hpp>
 #include <cpplogger/LogContextFormatter.hpp>
 #include <cpplogger/context.hpp>
-#include <cpplogger/logger.hpp>
 
 #include <expected>
 #include <iostream>
