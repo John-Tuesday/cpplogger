@@ -12,6 +12,7 @@ target_sources(cpplogger_header_only
     logger.hpp
     context.hpp
     LogContextFormatString.hpp
+    LogContextFormatter.hpp
 )
 
 target_compile_features(cpplogger_header_only
