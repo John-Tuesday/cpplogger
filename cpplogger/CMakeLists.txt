@@ -56,6 +56,8 @@ target_sources(cpplogger_header_only
   PUBLIC FILE_SET common TYPE HEADERS
   BASE_DIRS
     "$<BUILD_INTERFACE:${cpplogger_generated_dir}>"
+    # TODO: Verify this makes sense and doesn't conflict with the normal headers.
+    "$<INSTALL_INTERFACE:${CMAKE_INCLUDE_INSTALL_DIR}>"
   FILES
     "${cpplogger_header_common_path}"
 )
