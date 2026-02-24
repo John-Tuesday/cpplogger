@@ -1,5 +1,6 @@
 #include "fixtures/tempfiles.hpp"
 
+#include <cpplogger/LogContextFormatter.hpp>
 #include <cpplogger/context.hpp>
 #include <cpplogger/logger.hpp>
 

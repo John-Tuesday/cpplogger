@@ -1,5 +1,6 @@
 #include "static.hpp"
 
+#include <cpplogger/LogContextFormatter.hpp>
 #include <cpplogger/context.hpp>
 #include <cpplogger/log.hpp>
 
