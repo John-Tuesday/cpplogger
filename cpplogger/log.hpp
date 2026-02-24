@@ -69,6 +69,22 @@ template <
     typename LoggerType =
         cpplogger::DefaultLogger<cpplogger::DefaultTag>::Logger<char>,
     typename... Args>
+void logWarning(
+    cpplogger::LogContextFormatString<
+        cpplogger::WarningContext,
+        char,
+        std::type_identity_t<Args>...> fmt,
+    Args&&... args) {
+  LoggerType{}.log(fmt.context(), fmt, std::forward<Args>(args)...);
+}
+
+/**
+ * @copydoc `cpplogger::logWarning()`
+ */
+template <
+    typename LoggerType =
+        cpplogger::DefaultLogger<cpplogger::DefaultTag>::Logger<char>,
+    typename... Args>
 void logWarn(
     cpplogger::LogContextFormatString<
         cpplogger::WarningContext,
