@@ -4,6 +4,7 @@
 #include <format>
 #include <iostream>
 #include <iterator>
+#include <sstream>
 #include <utility>
 
 namespace cpplogger {
@@ -55,6 +56,26 @@ class cpplogger::BasicLogger {
     }
     it = std::format_to(it, fmt, std::forward<Args>(args)...);
     return it;
+  }
+
+  /**
+   * @brief Format log message to a string using `formatTo()`.
+   *
+   * @see `formatTo()`
+   */
+  template <typename Context, typename Self, typename... Args>
+  std::basic_string<CharType> format(
+      this const Self& self,
+      Context&& context,
+      std::basic_format_string<CharType, std::type_identity_t<Args>...> fmt,
+      Args&&... args) {
+    std::basic_stringstream<CharType> stream;
+    self.formatTo(
+        std::ostreambuf_iterator{stream},
+        std::forward<Context>(context),
+        fmt,
+        std::forward<Args>(args)...);
+    return std::move(stream).str();
   }
 
   /**

@@ -46,6 +46,12 @@ std::expected<void, std::wstring> testWideFormatTo(
     cpplogger::BasicLogContext context = {std::source_location::current()});
 
 template <typename Context>
+std::expected<void, std::string> testFormat(Context&&);
+
+template <typename Context>
+std::expected<void, std::wstring> testWideFormat(Context&&);
+
+template <typename Context>
 std::expected<void, std::string> testLog(Context&&);
 
 template <typename Context>
@@ -63,6 +69,15 @@ int main() {
     return 1;
   }
   cpplogger::BasicLogContext context{std::source_location::current()};
+  if (std::expected result = cpplogger::test::testFormat(context); !result) {
+    std::println(std::cerr, "{}", result.error());
+    return 1;
+  }
+  if (std::expected result = cpplogger::test::testWideFormat(context);
+      !result) {
+    std::wcerr << result.error() << "\n";
+    return 1;
+  }
   if (std::expected result = cpplogger::test::testLog(context); !result) {
     std::println(std::cerr, "{}\n", result.error());
     return 1;
@@ -112,6 +127,38 @@ cpplogger::test::testWideFormatTo(cpplogger::BasicLogContext context) {
   if (expect != capture.view())
     return std::unexpected{
         cpplogger::test::errorMessage(expect, capture.view())};
+  return {};
+}
+
+template <typename Context>
+std::expected<void, std::string>
+cpplogger::test::testFormat(Context&& context) {
+  cpplogger::BasicLogger<char> logger{};
+  std::string actual = logger.format(context, "test log\n");
+  std::stringstream expectStream{};
+  logger.formatTo(
+      std::ostreambuf_iterator{expectStream},
+      context,
+      "test log\n");
+  std::string_view expect = expectStream.view();
+  if (expect != actual)
+    return std::unexpected(cpplogger::test::errorMessage(expect, actual));
+  return {};
+}
+
+template <typename Context>
+std::expected<void, std::wstring>
+cpplogger::test::testWideFormat(Context&& context) {
+  cpplogger::BasicLogger<wchar_t> logger{};
+  std::wstring actual = logger.format(context, L"test log\n");
+  std::wstringstream expectStream{};
+  logger.formatTo(
+      std::ostreambuf_iterator{expectStream},
+      context,
+      L"test log\n");
+  std::wstring_view expect = expectStream.view();
+  if (expect != actual)
+    return std::unexpected(cpplogger::test::errorMessage(expect, actual));
   return {};
 }
 
