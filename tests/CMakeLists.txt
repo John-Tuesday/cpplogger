@@ -26,19 +26,18 @@ add_test(NAME "CppLogger: LogContext [Unit Test]"
   COMMAND cpplogger_logcontext_unit_test
 )
 
-add_executable(cpplogger_log_to_file)
-target_sources(cpplogger_log_to_file
+add_executable(cpplogger_log_to_file_unit_test)
+target_sources(cpplogger_log_to_file_unit_test
   PRIVATE
     TestFileLog.cpp
 )
-target_link_libraries(cpplogger_log_to_file
+target_link_libraries(cpplogger_log_to_file_unit_test
   PRIVATE
     CppLogger::HeaderOnly
     CppLoggerTest::DefaultFixtures
 )
-
-add_test(NAME cpplogger_log_to_file_test
-  COMMAND cpplogger_log_to_file
+add_test(NAME "CppLogger: Log to file [Unit Test]"
+  COMMAND cpplogger_log_to_file_unit_test
 )
 
 add_subdirectory(manual)
