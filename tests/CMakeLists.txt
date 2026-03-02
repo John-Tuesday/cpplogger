@@ -40,6 +40,19 @@ add_test(NAME "CppLogger: Log to file [Unit Test]"
   COMMAND cpplogger_log_to_file_unit_test
 )
 
+add_executable(cpplogger_defaults_unit_test)
+target_sources(cpplogger_defaults_unit_test
+  PRIVATE
+    defaults_unit_test.cpp
+)
+target_link_libraries(cpplogger_defaults_unit_test
+  PRIVATE
+    CppLogger::HeaderOnly
+)
+add_test(NAME "CppLogger: Inject default logger [Unit Test]"
+  COMMAND cpplogger_defaults_unit_test
+)
+
 add_subdirectory(manual)
 add_subdirectory(samples)
 
