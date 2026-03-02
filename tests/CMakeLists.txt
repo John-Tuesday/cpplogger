@@ -8,6 +8,7 @@ target_sources(cpplogger_logger_unit_test
 target_link_libraries(cpplogger_logger_unit_test
   PRIVATE
     CppLogger::HeaderOnly
+    CppLoggerTest::DefaultFixtures
 )
 add_test(NAME "CppLogger: Logger [Unit Test]"
   COMMAND cpplogger_logger_unit_test
