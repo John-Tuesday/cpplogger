@@ -21,7 +21,7 @@ struct cpplogger::DefaultTag {};
  * @brief Defines the default types; this may be specialized to inject custom
  * types.
  */
-template <typename T = cpplogger::DefaultTag>
+template <typename T>
 struct cpplogger::Defaults {
   template <typename CharT>
   using Logger = cpplogger::BasicLogger<CharT>;
