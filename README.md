@@ -21,3 +21,26 @@ Default behavior can be changed by specializing the corresponding default templa
 ### Thread safety
 
 There is **no** thread saftey by default, but maybe in the future. At least make thread saftey easy to acheive.
+
+## Usage
+
+### Inject default logger
+
+> advice as of 2026-03-02
+
+Specialize `cpplogger::Defaults<cpplogger::DefaultTag>` such that
+`cpplogger::Defaults<cpplogger::DefaultTag>::Logger{}` produces a logger object.
+Make sure this specialization is defined before including `cpplogger/log.hpp`.
+I recommend essentially replacing `cpplogger/log.hpp` with a header that defines
+this specialization, then includes `cpplogger/log.hpp` afterwords.
+
+```cpp
+template <>
+struct cpplogger::Defaults<cpplogger::DefaultTag> {
+  template <typename CharT>
+  using Logger = cpplogger::test::AltLogger;
+};
+
+#include <cpplogger/log.hpp>
+```
+
