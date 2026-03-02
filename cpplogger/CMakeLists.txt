@@ -7,7 +7,6 @@ target_sources(cpplogger_header_only
     "$<BUILD_INTERFACE:${CppLogger_SOURCE_DIR}>"
     "$<INSTALL_INTERFACE:${CMAKE_INCLUDE_INSTALL_DIR}>"
   FILES
-    concepts.hpp
     log.hpp
     context.hpp
     BasicLogger.hpp
