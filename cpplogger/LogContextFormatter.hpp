@@ -5,16 +5,16 @@
 
 #include <format>
 
-template <typename T>
+template <typename T, typename CharT>
   requires std::derived_from<T, cpplogger::BasicLogContext>
-struct std::formatter<T, char>;
+struct std::formatter<T, CharT>;
 
 namespace cpplogger {
 
 /**
  * @brief Alias for a log context formatter
  */
-template <typename T, typename CharT = char>
+template <typename T, typename CharT>
 using LogContextFormatter = std::formatter<T, CharT>;
 
 }  // namespace cpplogger
@@ -22,9 +22,9 @@ using LogContextFormatter = std::formatter<T, CharT>;
 /**
  * @brief Format basic context information.
  */
-template <typename T>
+template <typename T, typename CharT>
   requires std::derived_from<T, cpplogger::BasicLogContext>
-struct std::formatter<T, char> {
+struct std::formatter<T, CharT> {
 
   /**
    * @brief Parse format-spec.
