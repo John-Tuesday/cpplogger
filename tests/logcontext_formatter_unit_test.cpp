@@ -1,9 +1,10 @@
+#include "fixtures/result.hpp"
+
 #include <cpplogger/LogContextFormatter.hpp>
 #include <cpplogger/context.hpp>
 
 #include <expected>
 #include <format>
-#include <print>
 #include <sstream>
 
 namespace cpplogger::test {
@@ -21,21 +22,16 @@ template <typename T>
 struct DerivedContext : public T {};
 
 template <typename T>
-std::expected<void, std::string> derivedMatchesCategoryName() {
+cpplogger::test::Result derivedMatchesCategoryName() {
   T expect;
   DerivedContext<T> actual;
   if (expect.category() != actual.category())
-    return std::unexpected(
-        std::format(
-            "expected: {}\n"
-            "actual: {}",
-            expect.category(),
-            actual.category()));
+    return cpplogger::test::mismatch(expect.category(), actual.category());
   return {};
 }
 
 template <typename... Ts>
-std::expected<void, std::string> derivedContextKeepsCategoryName() {
+cpplogger::test::Result derivedContextKeepsCategoryName() {
   std::array results = {derivedMatchesCategoryName<Ts>()...};
   std::stringstream stream{};
   std::ostreambuf_iterator out{stream};
@@ -50,25 +46,24 @@ std::expected<void, std::string> derivedContextKeepsCategoryName() {
     }
   }
   if (!pass)
-    return std::unexpected{std::move(stream.str())};
+    return cpplogger::test::ResultFail{std::move(stream.str())};
   return {};
 }
 
 template <typename T>
-std::expected<void, std::string> formatEmptyKeepsOnlyCategory(T context) {
+cpplogger::test::Result formatEmptyKeepsOnlyCategory(T context) {
   assert(context.empty());
   std::string actual = std::format("{}", context);
   std::string expect =
       context.category().empty() ? "" : std::format("[{}]", context.category());
   if (actual != expect)
-    return std::unexpected{
-        std::format("expected: '{}'\nactual: '{}'", expect, actual)};
+    return cpplogger::test::mismatch(expect, actual);
   return {};
 }
 
 template <typename... Ts>
-std::expected<void, std::string> testAllContexts() {
-  if (std::expected result = derivedContextKeepsCategoryName<Ts...>(); !result)
+cpplogger::test::Result testAllContexts() {
+  if (auto result = derivedContextKeepsCategoryName<Ts...>(); !result)
     return result;
   return {};
 }
@@ -85,9 +80,7 @@ int main() {
           cpplogger::InfoContext,
           cpplogger::DebugContext,
           cpplogger::VerboseContext>();
-      !result) {
-    std::println("failed\n{}", result.error());
-    return 1;
-  }
+      !result)
+    return cpplogger::test::printError(result.error());
   return 0;
 }
