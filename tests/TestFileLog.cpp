@@ -1,12 +1,11 @@
+#include "fixtures/result.hpp"
 #include "fixtures/tempfiles.hpp"
 
 #include <cpplogger/BasicLogger.hpp>
 #include <cpplogger/LogContextFormatter.hpp>
 #include <cpplogger/context.hpp>
 
-#include <expected>
 #include <fstream>
-#include <print>
 #include <source_location>
 #include <sstream>
 #include <string_view>
@@ -16,19 +15,17 @@ namespace cpplogger::test {
 class LogTargetsBasicFileLog;
 
 template <typename Context>
-std::expected<void, std::string> testFileLog(
+cpplogger::test::Result testFileLog(
     std::string_view input,
     Context context = {std::source_location::current()});
 
 }  // namespace cpplogger::test
 
 int main() {
-  if (std::expected result =
+  if (auto result =
           cpplogger::test::testFileLog<cpplogger::InfoContext>("info: 5 == 5");
-      !result) {
-    std::println("FAIL: {}", result.error());
-    return 1;
-  }
+      !result)
+    return cpplogger::test::printError(result.error());
   return 0;
 }
 
@@ -87,7 +84,7 @@ std::ofstream cpplogger::test::LogTargetsBasicFileLog::getLogStream() const {
  * Log to a logger which writes to a file, then verify the contents of the file.
  */
 template <typename Context>
-std::expected<void, std::string>
+cpplogger::test::Result
 cpplogger::test::testFileLog(std::string_view input, Context context) {
   cpplogger::test::LogTargetsBasicFileLog logger{};
   std::stringstream captured{};
@@ -96,7 +93,7 @@ cpplogger::test::testFileLog(std::string_view input, Context context) {
   std::string_view expect = captured.view();
   std::ifstream logIn{logger.getLogPath()};
   if (!logIn.is_open()) {
-    return std::unexpected(
+    return cpplogger::test::ResultFail(
         std::format(
             "Failed to open file '{}'",
             logger.getLogPath().generic_string()));
@@ -105,21 +102,16 @@ cpplogger::test::testFileLog(std::string_view input, Context context) {
   std::string actual(expect.size(), '\0');
   logIn.read(actual.data(), actual.size());
   if (logIn.bad()) {
-    return std::unexpected(
+    return cpplogger::test::ResultFail(
         std::format(
             "I/O error while reading file '{}'",
             logger.getLogPath().generic_string()));
   }
   if (actual != expect) {
-    return std::unexpected(
-        std::format(
-            "log file did not contain expected contents\n"
-            "  expected: '{}'\n  actual: '{}'",
-            expect,
-            actual));
+    return cpplogger::test::mismatch(expect, actual);
   }
   if (logIn.peek() != std::char_traits<char>::eof()) {
-    return std::unexpected("did not reach EOF");
+    return cpplogger::test::ResultFail("did not reach EOF");
   }
   return {};
 }
