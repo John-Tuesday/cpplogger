@@ -21,7 +21,7 @@ void log(
     Context&& context,
     std::basic_format_string<char, std::type_identity_t<Args>...> fmt,
     Args&&... args) {
-  LoggerType{}.log(
+  LoggerType().log(
       std::forward<Context>(context),
       fmt,
       std::forward<Args>(args)...);
@@ -41,7 +41,7 @@ void logFatal(
         char,
         std::type_identity_t<Args>...> fmt,
     Args&&... args) {
-  LoggerType{}.log(fmt.context(), fmt, std::forward<Args>(args)...);
+  cpplogger::log(fmt.context(), fmt, std::forward<Args>(args)...);
 }
 
 /**
@@ -58,7 +58,7 @@ void logError(
         char,
         std::type_identity_t<Args>...> fmt,
     Args&&... args) {
-  LoggerType{}.log(fmt.context(), fmt, std::forward<Args>(args)...);
+  cpplogger::log(fmt.context(), fmt, std::forward<Args>(args)...);
 }
 
 /**
@@ -72,8 +72,7 @@ void logWarning(
         char,
         std::type_identity_t<Args>...> fmt,
     Args&&... args) {
-  using LoggerType = cpplogger::Defaults<cpplogger::DefaultTag>::Logger<char>;
-  LoggerType{}.log(fmt.context(), fmt, std::forward<Args>(args)...);
+  cpplogger::log(fmt.context(), fmt, std::forward<Args>(args)...);
 }
 
 /**
@@ -89,7 +88,7 @@ void logWarn(
         char,
         std::type_identity_t<Args>...> fmt,
     Args&&... args) {
-  LoggerType{}.log(fmt.context(), fmt, std::forward<Args>(args)...);
+  cpplogger::log(fmt.context(), fmt, std::forward<Args>(args)...);
 }
 
 /**
@@ -106,7 +105,7 @@ void logInfo(
         char,
         std::type_identity_t<Args>...> fmt,
     Args&&... args) {
-  LoggerType{}.log(fmt.context(), fmt, std::forward<Args>(args)...);
+  cpplogger::log(fmt.context(), fmt, std::forward<Args>(args)...);
 }
 
 /**
@@ -123,7 +122,7 @@ void logDebug(
         char,
         std::type_identity_t<Args>...> fmt,
     Args&&... args) {
-  LoggerType{}.log(fmt.context(), fmt, std::forward<Args>(args)...);
+  cpplogger::log(fmt.context(), fmt, std::forward<Args>(args)...);
 }
 
 /**
@@ -140,7 +139,7 @@ void logVerbose(
         char,
         std::type_identity_t<Args>...> fmt,
     Args&&... args) {
-  LoggerType{}.log(fmt.context(), fmt, std::forward<Args>(args)...);
+  cpplogger::log(fmt.context(), fmt, std::forward<Args>(args)...);
 }
 
 }  // namespace cpplogger
