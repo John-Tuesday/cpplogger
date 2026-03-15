@@ -7,6 +7,8 @@
 #include <sstream>
 #include <utility>
 
+#include "LogContextFormatter.hpp"
+
 namespace cpplogger {
 
 template <typename CharT>
