@@ -16,9 +16,6 @@ class LogContextFormatString;
  * @brief Intended to be used a drop-in replacement for
  * `std::basic_format_string<>` but with extra context information for logging
  * purposes.
- *
- * @todo Consider letting the context variable be mutable.
- * @todo The context getter should reflect the mutability of the context.
  */
 template <typename Ctx, typename CharT, typename... Args>
   requires std::constructible_from<Ctx, std::source_location>
@@ -42,7 +39,7 @@ class cpplogger::LogContextFormatString
    *
    * Forwards `fmt` to `std::basic_format_string<>`.
    *
-   * @nore The default value for `location` will describe the callsite.
+   * @note The default value for `location` will describe the callsite.
    *
    * @param[in] fmt forwarded as the first argument of the constructor for
    * `std::basic_format_string<>`
@@ -58,13 +55,9 @@ class cpplogger::LogContextFormatString
         m_context{location} {}
 
   /**
-   * @return the associated context.
+   * @return const reference to associated context.
    */
-  template <typename Self>
-  constexpr auto context(this Self&& self) -> decltype(auto) {
-    return self.m_context;
-    // return std::forward_like<Self>(self.m_context);
-  }
+  constexpr const Context& context() const { return m_context; }
 
  private:
   Context m_context{};
