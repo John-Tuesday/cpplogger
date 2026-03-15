@@ -1,5 +1,8 @@
 #include "defaults_unit_test.hpp"
 
+#include <cpplogger/LogContextFormatter.hpp>
+#include <cpplogger/context.hpp>
+
 #include <print>
 
 int main() {

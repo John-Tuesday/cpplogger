@@ -3,8 +3,10 @@
 
 #include <cpplogger/BasicLogger.hpp>
 #include <cpplogger/Defaults.hpp>
-#include <cpplogger/LogContextFormatter.hpp>
-#include <cpplogger/context.hpp>
+// #include <cpplogger/LogContextFormatter.hpp>
+// #include <cpplogger/context.hpp>
+
+#include <cpplogger/log.hpp>
 
 namespace cpplogger::test {
 
@@ -28,11 +30,9 @@ struct AltLogger : public cpplogger::BasicLogger<char> {
 }  // namespace cpplogger::test
 
 template <>
-struct cpplogger::Defaults<cpplogger::DefaultTag> {
+struct cpplogger::Defaults</*void*/ cpplogger::DefaultTag> {
   template <typename CharT>
   using Logger = cpplogger::test::AltLogger;
 };
-
-#include <cpplogger/log.hpp>
 
 #endif
