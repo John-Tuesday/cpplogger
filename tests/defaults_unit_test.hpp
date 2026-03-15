@@ -1,6 +1,7 @@
 #ifndef TESTS_DEFAULTS_UNIT_TEST_HPP
 #define TESTS_DEFAULTS_UNIT_TEST_HPP
 
+#include <cpplogger/BasicLogger.hpp>
 #include <cpplogger/Defaults.hpp>
 #include <cpplogger/LogContextFormatter.hpp>
 #include <cpplogger/context.hpp>
