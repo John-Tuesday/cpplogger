@@ -1,8 +1,6 @@
 #ifndef CPPLOGGER_LOG_HPP
 #define CPPLOGGER_LOG_HPP
 
-#include <format>
-
 #include "Defaults.hpp"
 #include "LogContextFormatString.hpp"
 #include "context.hpp"
@@ -12,51 +10,48 @@ namespace cpplogger {
 /**
  * @brief Format and write log message using default constructed `LoggerType`.
  */
-template <typename LoggerType = void, typename Context, typename... Args>
+template <
+    typename Context,
+    typename Tag = cpplogger::DefaultTag,
+    typename... Args>
 void log(
-    Context&& context,
-    std::basic_format_string<char, std::type_identity_t<Args>...> fmt,
+    cpplogger::
+        LogContextFormatString<Context, char, std::type_identity_t<Args>...>
+            fmt,
     Args&&... args) {
   // This forces Logger to be a dependent name, thus delaying resolution of
   // Defaults and most importantly delaying the instantiation of a
   // specialization.
-  using Tag = std::conditional_t<
-      std::is_void_v<LoggerType>,
-      cpplogger::DefaultTag,
-      LoggerType>;
   using Logger = typename cpplogger::Defaults<Tag>::template Logger<char>;
-  Logger().log(
-      std::forward<Context>(context),
-      fmt,
-      std::forward<Args>(args)...);
+  Logger().log(fmt.context(), fmt, std::forward<Args>(args)...);
 }
 
 /**
  * @copybrief `cpplogger::log()`
  * @brief Uses the default fatal context.
  */
-template <typename LoggerType = void, typename... Args>
+template <typename... Args>
 void logFatal(
     cpplogger::LogContextFormatString<
         cpplogger::FatalContext,
         char,
         std::type_identity_t<Args>...> fmt,
     Args&&... args) {
-  cpplogger::log<LoggerType>(fmt.context(), fmt, std::forward<Args>(args)...);
+  cpplogger::log(std::move(fmt), std::forward<Args>(args)...);
 }
 
 /**
  * @copybrief `cpplogger::log()`
  * @brief Uses the default error context.
  */
-template <typename LoggerType = void, typename... Args>
+template <typename... Args>
 void logError(
     cpplogger::LogContextFormatString<
         cpplogger::ErrorContext,
         char,
         std::type_identity_t<Args>...> fmt,
     Args&&... args) {
-  cpplogger::log<LoggerType>(fmt.context(), fmt, std::forward<Args>(args)...);
+  cpplogger::log(std::move(fmt), std::forward<Args>(args)...);
 }
 
 /**
@@ -70,62 +65,62 @@ void logWarning(
         char,
         std::type_identity_t<Args>...> fmt,
     Args&&... args) {
-  cpplogger::log(fmt.context(), fmt, std::forward<Args>(args)...);
+  cpplogger::log(std::move(fmt), std::forward<Args>(args)...);
 }
 
 /**
  * @copydoc `cpplogger::logWarning()`
  */
-template <typename LoggerType = void, typename... Args>
+template <typename... Args>
 void logWarn(
     cpplogger::LogContextFormatString<
         cpplogger::WarningContext,
         char,
         std::type_identity_t<Args>...> fmt,
     Args&&... args) {
-  cpplogger::log<LoggerType>(fmt.context(), fmt, std::forward<Args>(args)...);
+  cpplogger::log(std::move(fmt), std::forward<Args>(args)...);
 }
 
 /**
  * @copybrief `cpplogger::log()`
  * @brief Uses the default info context.
  */
-template <typename LoggerType = void, typename... Args>
+template <typename... Args>
 void logInfo(
     cpplogger::LogContextFormatString<
         cpplogger::InfoContext,
         char,
         std::type_identity_t<Args>...> fmt,
     Args&&... args) {
-  cpplogger::log<LoggerType>(fmt.context(), fmt, std::forward<Args>(args)...);
+  cpplogger::log(std::move(fmt), std::forward<Args>(args)...);
 }
 
 /**
  * @copybrief `cpplogger::log()`
  * @brief Uses the default debug context.
  */
-template <typename LoggerType = void, typename... Args>
+template <typename... Args>
 void logDebug(
     cpplogger::LogContextFormatString<
         cpplogger::DebugContext,
         char,
         std::type_identity_t<Args>...> fmt,
     Args&&... args) {
-  cpplogger::log<LoggerType>(fmt.context(), fmt, std::forward<Args>(args)...);
+  cpplogger::log(std::move(fmt), std::forward<Args>(args)...);
 }
 
 /**
  * @copybrief `cpplogger::log()`
  * @brief Uses the default verbose context.
  */
-template <typename LoggerType = void, typename... Args>
+template <typename... Args>
 void logVerbose(
     cpplogger::LogContextFormatString<
         cpplogger::VerboseContext,
         char,
         std::type_identity_t<Args>...> fmt,
     Args&&... args) {
-  cpplogger::log<LoggerType>(fmt.context(), fmt, std::forward<Args>(args)...);
+  cpplogger::log(std::move(fmt), std::forward<Args>(args)...);
 }
 
 }  // namespace cpplogger
