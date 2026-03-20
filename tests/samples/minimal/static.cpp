@@ -5,6 +5,8 @@
 #include <cpplogger/log.hpp>
 
 void cpplogger::minimal::staticTestLog() {
-  cpplogger::BasicLogContext context = std::source_location::current();
-  cpplogger::log(context, "[static] minimal test log");
+  constexpr cpplogger::BasicLogContext context =
+      std::source_location::current();
+  cpplogger::log<cpplogger::BasicLogContext>(
+      {"[static] minimal test log", context});
 }

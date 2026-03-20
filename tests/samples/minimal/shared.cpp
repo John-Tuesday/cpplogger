@@ -5,6 +5,8 @@
 #include <cpplogger/log.hpp>
 
 void cpplogger::minimal::sharedTestLog() {
-  cpplogger::BasicLogContext context = std::source_location::current();
-  cpplogger::log(context, "[shared] minimal test log");
+  constexpr cpplogger::BasicLogContext context =
+      std::source_location::current();
+  cpplogger::log<cpplogger::BasicLogContext>(
+      {"[shared] minimal test log", context});
 }

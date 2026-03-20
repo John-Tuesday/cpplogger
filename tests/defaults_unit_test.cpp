@@ -12,11 +12,11 @@ int main() {
           cpplogger::test::AltLogger>,
       "Injected type is not as specified.");
   cpplogger::Defaults<cpplogger::DefaultTag>::Logger<char> logger{};
-  cpplogger::BasicLogContext context{};
+  constexpr cpplogger::BasicLogContext context{};
   std::string expect = logger.format(context, "log message\n");
   std::stringstream capture{};
   auto old = std::cerr.rdbuf(capture.rdbuf());
-  cpplogger::log(context, "log message");
+  cpplogger::log<cpplogger::BasicLogContext>({"log message", context});
   std::cerr.rdbuf(old);
   std::string_view actual = capture.view();
   if (actual != expect) {
