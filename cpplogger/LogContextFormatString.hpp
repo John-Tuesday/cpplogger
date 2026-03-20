@@ -49,10 +49,16 @@ class cpplogger::LogContextFormatString
   consteval LogContextFormatString(
       T&& fmt,
       std::source_location location = std::source_location::current())
+      : LogContextFormatString(std::forward<T>(fmt), Context{location}) {}
+
+  constexpr LogContextFormatString(LogContextFormatString&&) = default;
+
+  template <typename T>
+  consteval LogContextFormatString(T&& fmt, Context ctx)
       : std::basic_format_string<
             CharT,
             std::type_identity_t<Args>...>{std::forward<T>(fmt)},
-        m_context{location} {}
+        m_context{ctx} {}
 
   /**
    * @return const reference to associated context.
