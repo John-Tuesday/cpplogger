@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.30)
 project(CppLogger
-  VERSION 0.0.1
+  VERSION 0.0.2
   LANGUAGES CXX
 )
 
